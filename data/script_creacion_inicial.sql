@@ -122,7 +122,8 @@ GO
 		create table [REGISTROS_EN_FUGA].Autoparte_por_venta(
 		autoparte_id decimal(18) not null FOREIGN KEY REFERENCES [REGISTROS_EN_FUGA].Autopartes(autoparte_codigo),
 		factura_id	 decimal(18) not null FOREIGN KEY REFERENCES [REGISTROS_EN_FUGA].Facturas(factura_nro),
-		cantidad     int         not null 
+		cantidad     int         not null,
+		primary key (autoparte_id,factura_id) 
 		)
 
 	--STOCK
