@@ -4,7 +4,7 @@ GO
 CREATE SCHEMA [REGISTROS_EN_FUGA]
 GO
 
--- CREACIÓN DE TABLAS
+--------------------------------------------------------CREACIÓN DE TABLAS----------------------------------------------------------
 
 	--CLIENTES
 		create table [REGISTROS_EN_FUGA].Clientes(
@@ -134,3 +134,27 @@ GO
 		item_precio_venta decimal(18) not null, --no toy segura de type
 		item_sucursal_fk  int		  not null FOREIGN KEY REFERENCES [REGISTROS_EN_FUGA].Sucursales(sucursal_id)
 		)
+
+
+--------------------------------------------------------MIGRACIÓN DE DATOS----------------------------------------------------------
+
+	--MIGRACIÓN FABRICANTES
+	BEGIN TRANSACTION
+		BEGIN TRY
+			INSERT INTO [REGISTROS_EN_FUGA].Fabricantes SELECT distinct(FABRICANTE_NOMBRE) FROM [GD2C2020].[gd_esquema].[Maestra] order by FABRICANTE_NOMBRE
+		END TRY
+		BEGIN CATCH
+			RAISERROR('Hubo un error al insertar los fabricantes', 0,0)
+		END CATCH
+	COMMIT TRANSACTION 
+
+	--MIGRACIÓN SUCURSALES
+	BEGIN TRANSACTION
+		BEGIN TRY
+			INSERT INTO [REGISTROS_EN_FUGA].Sucursales SELECT distinct(SUCURSAL_DIRECCION), SUCURSAL_MAIL, SUCURSAL_TELEFONO, SUCURSAL_CIUDAD 
+			FROM [GD2C2020].[gd_esquema].[Maestra] WHERE SUCURSAL_DIRECCION IS NOT NULL order by SUCURSAL_DIRECCION
+		END TRY
+		BEGIN CATCH
+			RAISERROR('Hubo un error al insertar las Sucursales',0,0)
+		END CATCH
+	COMMIT TRANSACTION 
