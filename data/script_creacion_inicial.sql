@@ -1,6 +1,57 @@
 USE GD2C2020
 GO
 
+IF EXISTS ( SELECT 1 FROM information_schema.schemata WHERE   schema_name = 'REGISTROS_EN_FUGA' )
+	BEGIN
+		IF object_id('REGISTROS_EN_FUGA.Compra_Autoparte') is not null
+			drop table [REGISTROS_EN_FUGA].Compra_Autoparte
+
+		IF object_id('REGISTROS_EN_FUGA.Compra_automovil') is not null
+			drop table [REGISTROS_EN_FUGA].Compra_automovil
+		
+		IF object_id('REGISTROS_EN_FUGA.Autoparte_por_venta') is not null
+			drop table [REGISTROS_EN_FUGA].Autoparte_por_venta
+
+		IF object_id('REGISTROS_EN_FUGA.Facturas') is not null
+			drop table [REGISTROS_EN_FUGA].Facturas
+
+		IF object_id('REGISTROS_EN_FUGA.Stock') is not null
+			drop table [REGISTROS_EN_FUGA].Stock
+
+		IF object_id('REGISTROS_EN_FUGA.Automoviles') is not null
+			drop table [REGISTROS_EN_FUGA].Automoviles
+
+		IF object_id('REGISTROS_EN_FUGA.Modelo_auto') is not null
+			drop table [REGISTROS_EN_FUGA].Modelo_auto
+
+		IF object_id('REGISTROS_EN_FUGA.Clientes') is not null
+			drop table [REGISTROS_EN_FUGA].Clientes
+
+		IF object_id('REGISTROS_EN_FUGA.Sucursales') is not null
+			drop table [REGISTROS_EN_FUGA].Sucursales
+
+		IF object_id('REGISTROS_EN_FUGA.Autopartes') is not null
+			drop table [REGISTROS_EN_FUGA].Autopartes
+
+		IF object_id('REGISTROS_EN_FUGA.Fabricantes') is not null
+			drop table [REGISTROS_EN_FUGA].Fabricantes
+
+		IF object_id('REGISTROS_EN_FUGA.Tipo_auto') is not null
+			drop table [REGISTROS_EN_FUGA].Tipo_auto
+
+		IF object_id('REGISTROS_EN_FUGA.Tipo_caja') is not null
+			drop table [REGISTROS_EN_FUGA].Tipo_caja
+
+		IF object_id('REGISTROS_EN_FUGA.Tipo_transmision') is not null
+			drop table [REGISTROS_EN_FUGA].Tipo_transmision
+
+		IF object_id('REGISTROS_EN_FUGA.Motores') is not null
+			drop table [REGISTROS_EN_FUGA].Motores
+		
+		DROP SCHEMA [REGISTROS_EN_FUGA]
+	END
+GO
+
 CREATE SCHEMA [REGISTROS_EN_FUGA]
 GO
 
@@ -69,8 +120,8 @@ GO
 		modelo_codigo			   decimal(18)  primary key,
 		modelo_nombre			   nvarchar(255) not null,
 		modelo_potencia			   decimal(18)   not null,
-		modelo_tipo_caja_fk        decimal(18) not null FOREIGN KEY REFERENCES [REGISTROS_EN_FUGA].Tipo_caja(tipo_caja_codigo),
-		modelo_tipo_transmision_fk decimal(18) not null FOREIGN KEY REFERENCES [REGISTROS_EN_FUGA].Tipo_transmision(tipo_transmision_codigo)
+		modelo_tipo_caja_fk        decimal(18) not null,
+		modelo_tipo_transmision_fk decimal(18) not null 
 		)
 
 	--AUTOMÓVILES
@@ -81,27 +132,27 @@ GO
 		auto_patente    nvarchar(50) not null,
 		auto_fecha_alta datetime2(3) not null,
 		auto_cant_kms   decimal(18)  not null,
-		auto_modelo_fk  decimal(18)  not null FOREIGN KEY REFERENCES [REGISTROS_EN_FUGA].Modelo_auto(modelo_codigo),
+		auto_modelo_fk  decimal(18)  not null,
 		auto_precio		decimal(18)  not null, --NO SÉ SI ESTÁ BIEN EL TIPO
-		auto_tipo_fk    decimal(18)  not null FOREIGN KEY REFERENCES [REGISTROS_EN_FUGA].Tipo_auto(tipo_auto_codigo)
+		auto_tipo_fk    decimal(18)  not null
 		)
 
 	--COMPRA_AUTOMÓVIL
 		create table [REGISTROS_EN_FUGA].Compra_automovil(
 		compra_nro		   decimal(18)  primary key,
 		compra_fecha	   datetime2(3) not null,
-		compra_auto_fk     int          not null FOREIGN KEY REFERENCES [REGISTROS_EN_FUGA].Automoviles(auto_id),
-		compra_sucursal_fk int			not null FOREIGN KEY REFERENCES [REGISTROS_EN_FUGA].Sucursales(sucursal_id)
+		compra_auto_fk     int          not null,
+		compra_sucursal_fk int			not null
 		)
 
 	--COMPRA_AUTOPARTE
 		create table [REGISTROS_EN_FUGA].Compra_Autoparte(
 		compra_nro		   decimal(18) primary key,
-		autoparte_cod_fk   decimal(18) not null FOREIGN KEY REFERENCES [REGISTROS_EN_FUGA].Autopartes(autoparte_codigo),
+		autoparte_cod_fk   decimal(18) not null,
 		categoria		   nvarchar(255), --PROVISORIAMENTE CREO QUE ES STRING Y NULO PORQUE NO TENEMOS DATOS
-		auto_modelo_fk     decimal(18) not null FOREIGN KEY REFERENCES [REGISTROS_EN_FUGA].Modelo_auto(modelo_codigo),
-		compra_sucursal_fk int		   not null FOREIGN KEY REFERENCES [REGISTROS_EN_FUGA].Sucursales(sucursal_id),
-		fabricante_fk	   int         not null FOREIGN KEY REFERENCES [REGISTROS_EN_FUGA].Fabricantes(fabricante_id),
+		auto_modelo_fk     decimal(18) not null,
+		compra_sucursal_fk int		   not null,
+		fabricante_fk	   int         not null,
 		compra_fecha	   datetime2(3)  not null,
 		compra_precio      decimal(18,2) not null,
 		compra_cantidad	   decimal(18)	 not null
@@ -112,16 +163,16 @@ GO
 		factura_nro			decimal(18)  primary key,
 		fac_fecha	        datetime2(3) not null,
 		fac_precio_total_facturado decimal(18) not null, --NO SE SI ESTA BIEN EL TIPO
-		fac_cliente_fk         int not null FOREIGN KEY REFERENCES [REGISTROS_EN_FUGA].Clientes(cliente_id),
-		fac_sucursal_fk	       int not null FOREIGN KEY REFERENCES [REGISTROS_EN_FUGA].Sucursales(sucursal_id),
-		fac_sucursal_compra_fk int not null FOREIGN KEY REFERENCES [REGISTROS_EN_FUGA].Sucursales(sucursal_id),
-		fac_auto_fk			   int not null FOREIGN KEY REFERENCES [REGISTROS_EN_FUGA].Automoviles(auto_id)
+		fac_cliente_fk         int not null,
+		fac_sucursal_fk	       int not null,
+		fac_sucursal_compra_fk int not null,
+		fac_auto_fk			   int not null
 		)
 
 	--AUTOPARTE_POR_VENTA
 		create table [REGISTROS_EN_FUGA].Autoparte_por_venta(
-		autoparte_id decimal(18) not null FOREIGN KEY REFERENCES [REGISTROS_EN_FUGA].Autopartes(autoparte_codigo),
-		factura_id	 decimal(18) not null FOREIGN KEY REFERENCES [REGISTROS_EN_FUGA].Facturas(factura_nro),
+		autoparte_id decimal(18) not null,
+		factura_id	 decimal(18) not null,
 		cantidad     int         not null,
 		primary key (autoparte_id,factura_id) 
 		)
@@ -129,11 +180,83 @@ GO
 	--STOCK
 		create table [REGISTROS_EN_FUGA].Stock(
 		item_id		      decimal(18) primary key identity,
-		item_auto_fk      int         not null FOREIGN KEY REFERENCES [REGISTROS_EN_FUGA].Automoviles(auto_id),
-		item_autoparte_fk decimal(18) not null FOREIGN KEY REFERENCES [REGISTROS_EN_FUGA].Autopartes(autoparte_codigo),
+		item_auto_fk      int         not null,
+		item_autoparte_fk decimal(18) not null,
 		item_precio_venta decimal(18) not null, --no toy segura de type
-		item_sucursal_fk  int		  not null FOREIGN KEY REFERENCES [REGISTROS_EN_FUGA].Sucursales(sucursal_id)
+		item_sucursal_fk  int		  not null
 		)
+
+
+--------------------------------------------------------DECLARACIÓN DE CONSTRAINTS--------------------------------------------------
+
+	--MODELO_AUTO
+		ALTER TABLE [REGISTROS_EN_FUGA].Modelo_auto 
+			ADD CONSTRAINT FK_Tipo_Caja_cod FOREIGN KEY (modelo_tipo_caja_fk) REFERENCES [REGISTROS_EN_FUGA].Tipo_caja(tipo_caja_codigo)
+
+		ALTER TABLE [REGISTROS_EN_FUGA].Modelo_auto 
+			ADD CONSTRAINT FK_Tipo_Transmision FOREIGN KEY (modelo_tipo_transmision_fk) REFERENCES [REGISTROS_EN_FUGA].Tipo_transmision(tipo_transmision_codigo)
+
+
+	--AUTOMÓVILES
+		ALTER TABLE [REGISTROS_EN_FUGA].Automoviles
+			ADD CONSTRAINT FK_Auto_Modelo FOREIGN KEY (auto_modelo_fk) REFERENCES [REGISTROS_EN_FUGA].Modelo_auto(modelo_codigo)
+
+		ALTER TABLE [REGISTROS_EN_FUGA].Automoviles
+			ADD CONSTRAINT FK_Auto_Tipo FOREIGN KEY (auto_tipo_fk) REFERENCES [REGISTROS_EN_FUGA].Tipo_auto(tipo_auto_codigo)
+
+
+	--COMPRA_AUTOMÓVIL
+		ALTER TABLE [REGISTROS_EN_FUGA].Compra_automovil 
+			ADD CONSTRAINT FK_Compra_Auto FOREIGN KEY (compra_auto_fk) REFERENCES [REGISTROS_EN_FUGA].Automoviles(auto_id)
+
+		ALTER TABLE [REGISTROS_EN_FUGA].Compra_automovil 
+			ADD CONSTRAINT FK_Compra_Sucursal FOREIGN KEY (compra_sucursal_fk) REFERENCES [REGISTROS_EN_FUGA].Sucursales(sucursal_id)
+
+
+	--COMPRA_AUTOPARTE
+		ALTER TABLE [REGISTROS_EN_FUGA].Compra_Autoparte 
+			ADD CONSTRAINT FK_Compra_AutoParte_Cod FOREIGN KEY (autoparte_cod_fk) REFERENCES [REGISTROS_EN_FUGA].Autopartes(autoparte_codigo)
+
+		ALTER TABLE [REGISTROS_EN_FUGA].Compra_Autoparte 
+			ADD CONSTRAINT FK_Compra_Auto_Modelo FOREIGN KEY (auto_modelo_fk) REFERENCES [REGISTROS_EN_FUGA].Modelo_auto(modelo_codigo)
+		
+		ALTER TABLE [REGISTROS_EN_FUGA].Compra_Autoparte 
+			ADD CONSTRAINT FK_Compra_Sucursal_cod FOREIGN KEY (compra_sucursal_fk) REFERENCES [REGISTROS_EN_FUGA].Sucursales(sucursal_id)
+
+		ALTER TABLE [REGISTROS_EN_FUGA].Compra_Autoparte 
+			ADD CONSTRAINT FK_Fabricante_id FOREIGN KEY (fabricante_fk) REFERENCES [REGISTROS_EN_FUGA].Fabricantes(fabricante_id)
+
+	--FACTURAS
+		ALTER TABLE [REGISTROS_EN_FUGA].Facturas
+			ADD CONSTRAINT FK_Cliente FOREIGN KEY (fac_cliente_fk) REFERENCES [REGISTROS_EN_FUGA].Clientes(cliente_id)
+
+		ALTER TABLE [REGISTROS_EN_FUGA].Facturas
+			ADD CONSTRAINT FK_Sucursal FOREIGN KEY (fac_sucursal_fk) REFERENCES [REGISTROS_EN_FUGA].Sucursales(sucursal_id)
+
+		ALTER TABLE [REGISTROS_EN_FUGA].Facturas
+			ADD CONSTRAINT FK_Sucursal_Compra FOREIGN KEY (fac_sucursal_compra_fk) REFERENCES [REGISTROS_EN_FUGA].Sucursales(sucursal_id)
+
+		ALTER TABLE [REGISTROS_EN_FUGA].Facturas
+			ADD CONSTRAINT FK_Auto FOREIGN KEY (fac_auto_fk) REFERENCES [REGISTROS_EN_FUGA].Automoviles(auto_id)
+
+
+	--AUTOPARTE_POR_VENTA
+		ALTER TABLE [REGISTROS_EN_FUGA].Autoparte_por_venta
+			ADD CONSTRAINT FK_Autoparte FOREIGN KEY (autoparte_id) REFERENCES [REGISTROS_EN_FUGA].Autopartes(autoparte_codigo)
+
+		ALTER TABLE [REGISTROS_EN_FUGA].Autoparte_por_venta
+			ADD CONSTRAINT FK_Factura FOREIGN KEY (factura_id) REFERENCES [REGISTROS_EN_FUGA].Facturas(factura_nro)
+
+	--STOCK
+		ALTER TABLE [REGISTROS_EN_FUGA].Stock
+			ADD CONSTRAINT FK_Item_Auto FOREIGN KEY (item_auto_fk) REFERENCES [REGISTROS_EN_FUGA].Automoviles(auto_id)
+
+		ALTER TABLE [REGISTROS_EN_FUGA].Stock
+			ADD CONSTRAINT FK_Item_Autoparte FOREIGN KEY (item_autoparte_fk) REFERENCES [REGISTROS_EN_FUGA].Autopartes(autoparte_codigo)
+
+		ALTER TABLE [REGISTROS_EN_FUGA].Stock
+			ADD CONSTRAINT FK_Item_Sucursal FOREIGN KEY (item_sucursal_fk) REFERENCES [REGISTROS_EN_FUGA].Sucursales(sucursal_id)
+
 
 
 --------------------------------------------------------MIGRACIÓN DE DATOS----------------------------------------------------------
