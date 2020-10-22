@@ -81,7 +81,7 @@ GO
 		create table [REGISTROS_EN_FUGA].Autopartes(
 		autoparte_codigo      decimal(18) primary key not null,
 		autoparte_descripcion nvarchar(255) not null,
-		autoparte_precio_facturado decimal(18) not null, --acá no sé si está bien el tipo
+		autoparte_precio_facturado decimal(18,2) not null,
 		unique (autoparte_codigo)
 		)
 
@@ -133,7 +133,7 @@ GO
 		auto_fecha_alta datetime2(3) not null,
 		auto_cant_kms   decimal(18)  not null,
 		auto_modelo_fk  decimal(18)  not null,
-		auto_precio		decimal(18)  not null, --NO SÉ SI ESTÁ BIEN EL TIPO
+		auto_precio		decimal(18,2)  not null,
 		auto_tipo_fk    decimal(18)  not null
 		)
 
@@ -162,7 +162,7 @@ GO
 		create table [REGISTROS_EN_FUGA].Facturas(
 		factura_nro			decimal(18)  primary key,
 		fac_fecha	        datetime2(3) not null,
-		fac_precio_total_facturado decimal(18) not null, --NO SE SI ESTA BIEN EL TIPO
+		fac_precio_total_facturado decimal(18,2) not null,
 		fac_cliente_fk         int not null,
 		fac_sucursal_fk	       int not null,
 		fac_sucursal_compra_fk int not null,
@@ -182,7 +182,7 @@ GO
 		item_id		      decimal(18) primary key identity,
 		item_auto_fk      int         not null,
 		item_autoparte_fk decimal(18) not null,
-		item_precio_venta decimal(18) not null, --no toy segura de type
+		item_precio_venta decimal(18,2) not null,
 		item_sucursal_fk  int		  not null
 		)
 
