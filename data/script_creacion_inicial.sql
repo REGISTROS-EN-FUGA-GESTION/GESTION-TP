@@ -1,4 +1,4 @@
-USE GD2C2020
+ï»¿USE GD2C2020
 GO
 
 IF EXISTS ( SELECT 1 FROM information_schema.schemata WHERE   schema_name = 'REGISTROS_EN_FUGA' )
@@ -81,7 +81,7 @@ GO
 		create table [REGISTROS_EN_FUGA].Autopartes(
 		autoparte_codigo      decimal(18) primary key not null,
 		autoparte_descripcion nvarchar(255) not null,
-		autoparte_precio_facturado decimal(18) not null, --acá no sé si está bien el tipo
+		autoparte_precio_facturado decimal(18,2) not null,
 		unique (autoparte_codigo)
 		)
 
@@ -133,7 +133,7 @@ GO
 		auto_fecha_alta datetime2(3) not null,
 		auto_cant_kms   decimal(18)  not null,
 		auto_modelo_fk  decimal(18)  not null,
-		auto_precio		decimal(18)  not null, --NO SÉ SI ESTÁ BIEN EL TIPO
+		auto_precio		decimal(18,2)  not null,
 		auto_tipo_fk    decimal(18)  not null
 		)
 
@@ -162,7 +162,7 @@ GO
 		create table [REGISTROS_EN_FUGA].Facturas(
 		factura_nro			decimal(18)  primary key,
 		fac_fecha	        datetime2(3) not null,
-		fac_precio_total_facturado decimal(18) not null, --NO SE SI ESTA BIEN EL TIPO
+		fac_precio_total_facturado decimal(18,2) not null,
 		fac_cliente_fk         int not null,
 		fac_sucursal_fk	       int not null,
 		fac_sucursal_compra_fk int not null,
@@ -182,7 +182,7 @@ GO
 		item_id		      decimal(18) primary key identity,
 		item_auto_fk      int         not null,
 		item_autoparte_fk decimal(18) not null,
-		item_precio_venta decimal(18) not null, --no toy segura de type
+		item_precio_venta decimal(18,2) not null,
 		item_sucursal_fk  int		  not null
 		)
 
@@ -281,8 +281,8 @@ GO
 			RAISERROR('Hubo un error al insertar las Sucursales',0,0)
 		END CATCH
 	COMMIT TRANSACTION 
-	
-		--MIGRACIÓN CLIENTES
+
+	--MIGRACI?N CLIENTES
 	BEGIN TRY
 	INSERT INTO [REGISTROS_EN_FUGA].Clientes (cli_DNI, cli_nombre, cli_apellido, cli_direccion, cli_fecha_nac, cli_mail) SELECT DISTINCT(CLIENTE_DNI), CLIENTE_NOMBRE, CLIENTE_APELLIDO, CLIENTE_DIRECCION,  CLIENTE_FECHA_NAC, CLIENTE_MAIL 
 			FROM [GD2C2020].[gd_esquema].[Maestra] WHERE CLIENTE_DNI IS NOT NULL order by CLIENTE_DNI
@@ -291,7 +291,7 @@ GO
 		RAISERROR('Hubo un error al insertar los Clientes',0,0)
 	END CATCH
 
-	--MIGRACIÓN AUTOPARTES
+	--MIGRACI?N AUTOPARTES
 	BEGIN TRY
 	INSERT INTO [REGISTROS_EN_FUGA].Autopartes SELECT DISTINCT(AUTO_PARTE_CODIGO), AUTO_PARTE_DESCRIPCION, PRECIO_FACTURADO
 			FROM [GD2C2020].[gd_esquema].[Maestra] WHERE PRECIO_FACTURADO IS NOT NULL AND AUTO_PARTE_CODIGO IS NOT NULL order by AUTO_PARTE_CODIGO
@@ -299,3 +299,22 @@ GO
 	BEGIN CATCH
 		RAISERROR('Hubo un error al insertar las Autopartes',0,0)
 	END CATCH
+
+	--MIGRACIO?N TIPO_CAJA
+	INSERT INTO [REGISTROS_EN_FUGA].Tipo_caja 
+		select DISTINCT(TIPO_CAJA_CODIGO), TIPO_CAJA_DESC from gd_esquema.Maestra WHERE TIPO_CAJA_CODIGO is not null order by TIPO_CAJA_CODIGO
+	GO
+
+	--MIGRACIO?N TIPO_TRANSMISION
+	INSERT INTO [REGISTROS_EN_FUGA].Tipo_transmision
+		select DISTINCT(TIPO_TRANSMISION_CODIGO), TIPO_TRANSMISION_DESC from gd_esquema.Maestra WHERE TIPO_TRANSMISION_CODIGO is not null order by TIPO_TRANSMISION_CODIGO
+	GO
+
+	--MIGRACIO?N MODELO_AUTO
+	INSERT INTO [REGISTROS_EN_FUGA].Modelo_auto
+		select DISTINCT(MODELO_CODIGO),MODELO_NOMBRE,MODELO_POTENCIA,c.TIPO_CAJA_CODIGO,t.TIPO_TRANSMISION_CODIGO 
+		from gd_esquema.Maestra m
+		JOIN [REGISTROS_EN_FUGA].Tipo_caja c ON m.TIPO_CAJA_CODIGO = c.tipo_caja_codigo
+		JOIN [REGISTROS_EN_FUGA].Tipo_transmision t ON m.TIPO_TRANSMISION_CODIGO = t.tipo_transmision_codigo
+		order by MODELO_CODIGO
+	GO
