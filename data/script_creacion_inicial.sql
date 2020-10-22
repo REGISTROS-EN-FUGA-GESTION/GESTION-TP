@@ -1,4 +1,4 @@
-USE GD2C2020
+ÔªøUSE GD2C2020
 GO
 
 IF EXISTS ( SELECT 1 FROM information_schema.schemata WHERE   schema_name = 'REGISTROS_EN_FUGA' )
@@ -55,7 +55,7 @@ GO
 CREATE SCHEMA [REGISTROS_EN_FUGA]
 GO
 
---------------------------------------------------------CREACI”N DE TABLAS----------------------------------------------------------
+--------------------------------------------------------CREACI√ìN DE TABLAS----------------------------------------------------------
 
 	--CLIENTES
 		create table [REGISTROS_EN_FUGA].Clientes(
@@ -81,7 +81,7 @@ GO
 		create table [REGISTROS_EN_FUGA].Autopartes(
 		autoparte_codigo      decimal(18) primary key not null,
 		autoparte_descripcion nvarchar(255) not null,
-		autoparte_precio_facturado decimal(18) not null, --ac· no sÈ si est· bien el tipo
+		autoparte_precio_facturado decimal(18) not null, --ac√° no s√© si est√° bien el tipo
 		unique (autoparte_codigo)
 		)
 
@@ -103,7 +103,7 @@ GO
 		tipo_caja_desc nvarchar(255) not null
 		)
 
-	--TIPO_TRANSMISI”N
+	--TIPO_TRANSMISI√ìN
 		create table [REGISTROS_EN_FUGA].Tipo_transmision(
 		tipo_transmision_codigo decimal(18) primary key not null,
 		tipo_transmision_desc nvarchar(255) not null
@@ -124,7 +124,7 @@ GO
 		modelo_tipo_transmision_fk decimal(18) not null 
 		)
 
-	--AUTOM”VILES
+	--AUTOM√ìVILES
 		create table [REGISTROS_EN_FUGA].Automoviles(
 		auto_id			int primary key identity,
 		auto_nro_chasis nvarchar(50) not null,
@@ -133,11 +133,11 @@ GO
 		auto_fecha_alta datetime2(3) not null,
 		auto_cant_kms   decimal(18)  not null,
 		auto_modelo_fk  decimal(18)  not null,
-		auto_precio		decimal(18)  not null, --NO S… SI EST¡ BIEN EL TIPO
+		auto_precio		decimal(18)  not null, --NO S√â SI EST√Å BIEN EL TIPO
 		auto_tipo_fk    decimal(18)  not null
 		)
 
-	--COMPRA_AUTOM”VIL
+	--COMPRA_AUTOM√ìVIL
 		create table [REGISTROS_EN_FUGA].Compra_automovil(
 		compra_nro		   decimal(18)  primary key,
 		compra_fecha	   datetime2(3) not null,
@@ -187,7 +187,7 @@ GO
 		)
 
 
---------------------------------------------------------DECLARACI”N DE CONSTRAINTS--------------------------------------------------
+--------------------------------------------------------DECLARACI√ìN DE CONSTRAINTS--------------------------------------------------
 
 	--MODELO_AUTO
 		ALTER TABLE [REGISTROS_EN_FUGA].Modelo_auto 
@@ -197,7 +197,7 @@ GO
 			ADD CONSTRAINT FK_Tipo_Transmision FOREIGN KEY (modelo_tipo_transmision_fk) REFERENCES [REGISTROS_EN_FUGA].Tipo_transmision(tipo_transmision_codigo)
 
 
-	--AUTOM”VILES
+	--AUTOM√ìVILES
 		ALTER TABLE [REGISTROS_EN_FUGA].Automoviles
 			ADD CONSTRAINT FK_Auto_Modelo FOREIGN KEY (auto_modelo_fk) REFERENCES [REGISTROS_EN_FUGA].Modelo_auto(modelo_codigo)
 
@@ -205,7 +205,7 @@ GO
 			ADD CONSTRAINT FK_Auto_Tipo FOREIGN KEY (auto_tipo_fk) REFERENCES [REGISTROS_EN_FUGA].Tipo_auto(tipo_auto_codigo)
 
 
-	--COMPRA_AUTOM”VIL
+	--COMPRA_AUTOM√ìVIL
 		ALTER TABLE [REGISTROS_EN_FUGA].Compra_automovil 
 			ADD CONSTRAINT FK_Compra_Auto FOREIGN KEY (compra_auto_fk) REFERENCES [REGISTROS_EN_FUGA].Automoviles(auto_id)
 
@@ -259,9 +259,9 @@ GO
 
 
 
---------------------------------------------------------MIGRACI”N DE DATOS----------------------------------------------------------
+--------------------------------------------------------MIGRACI√ìN DE DATOS----------------------------------------------------------
 
-	--MIGRACI”N FABRICANTES
+	--MIGRACI√ìN FABRICANTES
 	BEGIN TRANSACTION
 		BEGIN TRY
 			INSERT INTO [REGISTROS_EN_FUGA].Fabricantes SELECT distinct(FABRICANTE_NOMBRE) FROM [GD2C2020].[gd_esquema].[Maestra] order by FABRICANTE_NOMBRE
@@ -271,7 +271,7 @@ GO
 		END CATCH
 	COMMIT TRANSACTION 
 
-	--MIGRACI”N SUCURSALES
+	--MIGRACI√ìN SUCURSALES
 	BEGIN TRANSACTION
 		BEGIN TRY
 			INSERT INTO [REGISTROS_EN_FUGA].Sucursales SELECT distinct(SUCURSAL_DIRECCION), SUCURSAL_MAIL, SUCURSAL_TELEFONO, SUCURSAL_CIUDAD 
@@ -281,3 +281,22 @@ GO
 			RAISERROR('Hubo un error al insertar las Sucursales',0,0)
 		END CATCH
 	COMMIT TRANSACTION 
+
+	--MIGRACIOÃÅN TIPO_CAJA
+	INSERT INTO [REGISTROS_EN_FUGA].Tipo_caja 
+		select DISTINCT(TIPO_CAJA_CODIGO), TIPO_CAJA_DESC from gd_esquema.Maestra WHERE TIPO_CAJA_CODIGO is not null order by TIPO_CAJA_CODIGO
+	GO
+
+	--MIGRACIOÃÅN TIPO_TRANSMISION
+	INSERT INTO [REGISTROS_EN_FUGA].Tipo_transmision
+		select DISTINCT(TIPO_TRANSMISION_CODIGO), TIPO_TRANSMISION_DESC from gd_esquema.Maestra WHERE TIPO_TRANSMISION_CODIGO is not null order by TIPO_TRANSMISION_CODIGO
+	GO
+
+	--MIGRACIOÃÅN MODELO_AUTO
+	INSERT INTO [REGISTROS_EN_FUGA].Modelo_auto
+		select DISTINCT(MODELO_CODIGO),MODELO_NOMBRE,MODELO_POTENCIA,c.TIPO_CAJA_CODIGO,t.TIPO_TRANSMISION_CODIGO 
+		from gd_esquema.Maestra m
+		JOIN [REGISTROS_EN_FUGA].Tipo_caja c ON m.TIPO_CAJA_CODIGO = c.tipo_caja_codigo
+		JOIN [REGISTROS_EN_FUGA].Tipo_transmision t ON m.TIPO_TRANSMISION_CODIGO = t.tipo_transmision_codigo
+		order by MODELO_CODIGO
+	GO
