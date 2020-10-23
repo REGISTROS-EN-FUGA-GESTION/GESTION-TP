@@ -84,7 +84,10 @@ GO
 		create table [REGISTROS_EN_FUGA].Autopartes(
 		autoparte_codigo      decimal(18) primary key not null,
 		autoparte_descripcion nvarchar(255) not null,
-		autoparte_precio_facturado decimal(18,2) not null,
+		autoparte_precio_facturado decimal(18,2),	--poner not null
+		autoparte_precio_compra      decimal(18,2),	--poner not null
+		autoparte_modelo_fk     decimal(18) not null,
+		autoparte_fabricante_fk	   int         not null,
 		unique (autoparte_codigo)
 		)
 
@@ -156,20 +159,23 @@ GO
 		compra_nro		   decimal(18) primary key,
 		autoparte_cod_fk   decimal(18) not null,
 		categoria		   nvarchar(255),
-		auto_modelo_fk     decimal(18) not null,
 		compra_sucursal_fk int		   not null,
-		fabricante_fk	   int         not null,
 		compra_fecha	   datetime2(3)  not null,
-		compra_precio      decimal(18,2) not null
+		compra_precio_total	   decimal(18,2)  not null	--esta bien esto como en factura?
 		)
 
-	--AUTOPARTE_POR_VENTA
+	--AUTOPARTE_POR_COMPRA
 		create table [REGISTROS_EN_FUGA].Autoparte_por_compra(
+		auto_compra_id int primary key identity,
 		compra_nro	 decimal(18) not null,
 		autoparte_id decimal(18) not null,
 		cantidad     decimal(18) not null,
-		primary key (autoparte_id,compra_nro) 
 		)
+		/* cambio la primary key (autoparte_id,compra_nro) por id autogenerado
+			select * 
+			from gd_esquema.Maestra where (AUTO_PARTE_CODIGO = 5017 OR AUTO_PARTE_CODIGO = 5006)
+			and (compra_nro = 175488  OR compra_nro = 135193) 
+		*/
 
 	--FACTURAS
 		create table [REGISTROS_EN_FUGA].Facturas(
@@ -201,6 +207,7 @@ GO
 		)
 
 
+
 --------------------------------------------------------DECLARACI?N DE CONSTRAINTS--------------------------------------------------
 
 	--MODELO_AUTO
@@ -229,18 +236,20 @@ GO
 			ADD CONSTRAINT FK_Compra_Sucursal FOREIGN KEY (compra_sucursal_fk) REFERENCES [REGISTROS_EN_FUGA].Sucursales(sucursal_id)
 
 
+	--AUTOPARTES
+		ALTER TABLE [REGISTROS_EN_FUGA].Autopartes
+			ADD CONSTRAINT FK_autoparte_modelo FOREIGN KEY (autoparte_modelo_fk) REFERENCES [REGISTROS_EN_FUGA].Modelo_auto(modelo_codigo)
+
+		ALTER TABLE [REGISTROS_EN_FUGA].Autopartes
+			ADD CONSTRAINT FK_autoparte_fabricante FOREIGN KEY (autoparte_fabricante_fk) REFERENCES [REGISTROS_EN_FUGA].Fabricantes(fabricante_id)
+
+
 	--COMPRA_AUTOPARTE
 		ALTER TABLE [REGISTROS_EN_FUGA].Compra_Autoparte 
 			ADD CONSTRAINT FK_Compra_AutoParte_Cod FOREIGN KEY (autoparte_cod_fk) REFERENCES [REGISTROS_EN_FUGA].Autopartes(autoparte_codigo)
-
-		ALTER TABLE [REGISTROS_EN_FUGA].Compra_Autoparte 
-			ADD CONSTRAINT FK_Compra_Auto_Modelo FOREIGN KEY (auto_modelo_fk) REFERENCES [REGISTROS_EN_FUGA].Modelo_auto(modelo_codigo)
 		
 		ALTER TABLE [REGISTROS_EN_FUGA].Compra_Autoparte 
 			ADD CONSTRAINT FK_Compra_Sucursal_cod FOREIGN KEY (compra_sucursal_fk) REFERENCES [REGISTROS_EN_FUGA].Sucursales(sucursal_id)
-
-		ALTER TABLE [REGISTROS_EN_FUGA].Compra_Autoparte 
-			ADD CONSTRAINT FK_Fabricante_id FOREIGN KEY (fabricante_fk) REFERENCES [REGISTROS_EN_FUGA].Fabricantes(fabricante_id)
 
 
 	--AUTOPARTE_POR_COMPRA
@@ -322,13 +331,13 @@ GO
 	END CATCH
 
 	--MIGRACI�N AUTOPARTES
-	BEGIN TRY
-	INSERT INTO [REGISTROS_EN_FUGA].Autopartes SELECT DISTINCT(AUTO_PARTE_CODIGO), AUTO_PARTE_DESCRIPCION, PRECIO_FACTURADO
-			FROM [GD2C2020].[gd_esquema].[Maestra] WHERE PRECIO_FACTURADO IS NOT NULL AND AUTO_PARTE_CODIGO IS NOT NULL order by AUTO_PARTE_CODIGO
-	END TRY
-	BEGIN CATCH
-		RAISERROR('Hubo un error al insertar las Autopartes',0,0)
-	END CATCH
+	INSERT INTO [REGISTROS_EN_FUGA].Autopartes
+		SELECT DISTINCT(AUTO_PARTE_CODIGO), AUTO_PARTE_DESCRIPCION, PRECIO_FACTURADO, COMPRA_PRECIO, mo.modelo_codigo, f.fabricante_id
+		FROM [GD2C2020].[gd_esquema].[Maestra] m
+		JOIN [REGISTROS_EN_FUGA].Modelo_auto mo ON m.MODELO_CODIGO = mo.modelo_codigo
+		JOIN [REGISTROS_EN_FUGA].Fabricantes f ON m.FABRICANTE_NOMBRE = f.fabricante_nombre
+		WHERE AUTO_PARTE_CODIGO IS NOT NULL order by AUTO_PARTE_CODIGO
+	GO		-----------------------------------------------------------------------------------------------------------------falta hacer que precio compra y facturado no queden intercalados en dos registros
 
 	--MIGRACI�N TIPO_CAJA
 	INSERT INTO [REGISTROS_EN_FUGA].Tipo_caja 
@@ -375,18 +384,22 @@ GO
 		select DISTINCT(TIPO_AUTO_CODIGO), TIPO_AUTO_DESC from gd_esquema.Maestra WHERE TIPO_AUTO_CODIGO is not null order by TIPO_AUTO_CODIGO
 	GO
 
-	/* falta crear tabla intermedia
 	--MIGRACION COMPRA_AUTOPARTE
-	INSERT INTO [REGISTROS_EN_FUGA].Compra_Autoparte
-		select DISTINCT(COMPRA_NRO),a.autoparte_codigo,'' categoria,mo.modelo_codigo,s.sucursal_id,f.fabricante_id,COMPRA_FECHA,COMPRA_PRECIO,1 cant_facturada
+	INSERT INTO [REGISTROS_EN_FUGA].Compra_Autoparte	--falta cargar autopartes para que funcione
+		select DISTINCT(COMPRA_NRO),a.autoparte_codigo,'' categoria,s.sucursal_id,COMPRA_FECHA,68 precio_total	---calcular precio total
 		from gd_esquema.Maestra m
 		JOIN [REGISTROS_EN_FUGA].Autopartes a ON m.AUTO_PARTE_CODIGO = a.autoparte_codigo
-		JOIN [REGISTROS_EN_FUGA].Modelo_auto mo ON m.MODELO_CODIGO = mo.modelo_codigo
 		JOIN [REGISTROS_EN_FUGA].Sucursales s ON m.SUCURSAL_DIRECCION = s.sucursal_direccion
-		JOIN [REGISTROS_EN_FUGA].Fabricantes f ON m.FABRICANTE_NOMBRE = f.fabricante_nombre
-		order by COMPRA_NRO
+		order by a.autoparte_codigo
 	GO
-	*/
+
+	--MIGRACION AUTOPARTE_POR_COMPRA
+	INSERT INTO [REGISTROS_EN_FUGA].Autoparte_por_compra	--falta cargar autopartes para que funcione
+		select DISTINCT(c.compra_nro),a.autoparte_codigo,COMPRA_CANT from gd_esquema.Maestra m
+		JOIN [REGISTROS_EN_FUGA].Autopartes a ON m.AUTO_PARTE_CODIGO = a.autoparte_codigo
+		JOIN [REGISTROS_EN_FUGA].Compra_Autoparte c ON m.COMPRA_NRO = c.compra_nro
+		where c.compra_nro IS NOT NULL and AUTO_PARTE_CODIGO IS NOT NULL
+	GO
 
 	--MIGRACIÓN AUTOMÓVIL
 	INSERT INTO [REGISTROS_EN_FUGA].Automoviles
@@ -395,3 +408,5 @@ GO
 	GO
 
 	select * from [REGISTROS_EN_FUGA].automoviles
+
+
