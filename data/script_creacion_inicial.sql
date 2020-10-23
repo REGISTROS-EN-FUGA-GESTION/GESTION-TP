@@ -157,7 +157,6 @@ GO
 	--COMPRA_AUTOPARTE
 		create table [REGISTROS_EN_FUGA].Compra_Autoparte(
 		compra_nro		   decimal(18) primary key,
-		autoparte_cod_fk   decimal(18) not null,
 		categoria		   nvarchar(255),
 		compra_sucursal_fk int		   not null,
 		compra_fecha	   datetime2(3)  not null,
@@ -246,9 +245,6 @@ GO
 
 	--COMPRA_AUTOPARTE
 		ALTER TABLE [REGISTROS_EN_FUGA].Compra_Autoparte 
-			ADD CONSTRAINT FK_Compra_AutoParte_Cod FOREIGN KEY (autoparte_cod_fk) REFERENCES [REGISTROS_EN_FUGA].Autopartes(autoparte_codigo)
-		
-		ALTER TABLE [REGISTROS_EN_FUGA].Compra_Autoparte 
 			ADD CONSTRAINT FK_Compra_Sucursal_cod FOREIGN KEY (compra_sucursal_fk) REFERENCES [REGISTROS_EN_FUGA].Sucursales(sucursal_id)
 
 
@@ -331,14 +327,16 @@ GO
 	END CATCH
 
 	--MIGRACI�N AUTOPARTES
-	INSERT INTO [REGISTROS_EN_FUGA].Autopartes
-		SELECT DISTINCT(AUTO_PARTE_CODIGO), AUTO_PARTE_DESCRIPCION, PRECIO_FACTURADO, COMPRA_PRECIO, mo.modelo_codigo, f.fabricante_id
+	INSERT INTO [REGISTROS_EN_FUGA].Autopartes		--da warning y hay que insertar dos veces ??
+		SELECT DISTINCT(AUTO_PARTE_CODIGO), AUTO_PARTE_DESCRIPCION, max(PRECIO_FACTURADO) precio_facturado, max(COMPRA_PRECIO) compra_precio, mo.modelo_codigo, f.fabricante_id
 		FROM [GD2C2020].[gd_esquema].[Maestra] m
 		JOIN [REGISTROS_EN_FUGA].Modelo_auto mo ON m.MODELO_CODIGO = mo.modelo_codigo
 		JOIN [REGISTROS_EN_FUGA].Fabricantes f ON m.FABRICANTE_NOMBRE = f.fabricante_nombre
-		WHERE AUTO_PARTE_CODIGO IS NOT NULL order by AUTO_PARTE_CODIGO
+		WHERE AUTO_PARTE_CODIGO IS NOT NULL
+		group by AUTO_PARTE_CODIGO, AUTO_PARTE_DESCRIPCION, mo.modelo_codigo, f.fabricante_id
+		order by AUTO_PARTE_CODIGO
 	GO		-----------------------------------------------------------------------------------------------------------------falta hacer que precio compra y facturado no queden intercalados en dos registros
-
+	
 	--MIGRACI�N TIPO_CAJA
 	INSERT INTO [REGISTROS_EN_FUGA].Tipo_caja 
 		select DISTINCT(TIPO_CAJA_CODIGO), TIPO_CAJA_DESC from gd_esquema.Maestra WHERE TIPO_CAJA_CODIGO is not null order by TIPO_CAJA_CODIGO
@@ -385,20 +383,20 @@ GO
 	GO
 
 	--MIGRACION COMPRA_AUTOPARTE
-	INSERT INTO [REGISTROS_EN_FUGA].Compra_Autoparte	--falta cargar autopartes para que funcione
-		select DISTINCT(COMPRA_NRO),a.autoparte_codigo,'' categoria,s.sucursal_id,COMPRA_FECHA,68 precio_total	---calcular precio total
+	INSERT INTO [REGISTROS_EN_FUGA].Compra_Autoparte
+		select DISTINCT(COMPRA_NRO),'ninguna' categoria,s.sucursal_id,COMPRA_FECHA,68 precio_total										---calcular precio total
 		from gd_esquema.Maestra m
-		JOIN [REGISTROS_EN_FUGA].Autopartes a ON m.AUTO_PARTE_CODIGO = a.autoparte_codigo
 		JOIN [REGISTROS_EN_FUGA].Sucursales s ON m.SUCURSAL_DIRECCION = s.sucursal_direccion
-		order by a.autoparte_codigo
+		order by COMPRA_NRO
 	GO
-
+	
 	--MIGRACION AUTOPARTE_POR_COMPRA
-	INSERT INTO [REGISTROS_EN_FUGA].Autoparte_por_compra	--falta cargar autopartes para que funcione
+	INSERT INTO [REGISTROS_EN_FUGA].Autoparte_por_compra										--hay compras que aparecen en compra_autoparte pero no en autoparte_por_compra
 		select DISTINCT(c.compra_nro),a.autoparte_codigo,COMPRA_CANT from gd_esquema.Maestra m
 		JOIN [REGISTROS_EN_FUGA].Autopartes a ON m.AUTO_PARTE_CODIGO = a.autoparte_codigo
 		JOIN [REGISTROS_EN_FUGA].Compra_Autoparte c ON m.COMPRA_NRO = c.compra_nro
 		where c.compra_nro IS NOT NULL and AUTO_PARTE_CODIGO IS NOT NULL
+		order by c.compra_nro,a.autoparte_codigo
 	GO
 
 	--MIGRACIÓN AUTOMÓVIL
@@ -407,6 +405,4 @@ GO
 	    M.tipo_auto_codigo from [GD2C2020].[gd_esquema].[Maestra] M WHERE M.AUTO_NRO_CHASIS IS NOT NULL AND M.FACTURA_NRO IS NULL ORDER BY AUTO_NRO_CHASIS
 	GO
 
-	select * from [REGISTROS_EN_FUGA].automoviles
-
-
+	--select * from [REGISTROS_EN_FUGA].automoviles
