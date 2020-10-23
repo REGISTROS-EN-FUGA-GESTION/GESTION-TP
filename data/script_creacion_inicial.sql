@@ -114,7 +114,7 @@ GO
 
 	--MOTORES
 		create table [REGISTROS_EN_FUGA].Motores(
-		motor_nro int primary key identity, --NO ME ACUERDO DE DONDE SACABAMOS ESTE NUMERO
+		motor_nro  nvarchar(50) primary key,
 		tipo_motor decimal(18) not null
 		)
 	
@@ -338,6 +338,29 @@ GO
 		JOIN [REGISTROS_EN_FUGA].Tipo_transmision t ON m.TIPO_TRANSMISION_CODIGO = t.tipo_transmision_codigo
 		order by MODELO_CODIGO
 	GO
+
+	--MIGRACION MOTORES
+	INSERT INTO [REGISTROS_EN_FUGA].Motores
+		select DISTINCT(AUTO_NRO_MOTOR), TIPO_MOTOR_CODIGO from gd_esquema.Maestra WHERE AUTO_NRO_MOTOR is not null order by AUTO_NRO_MOTOR
+	GO
+
+	--MIGRACION TIPO_AUTO
+	INSERT INTO [REGISTROS_EN_FUGA].Tipo_auto
+		select DISTINCT(TIPO_AUTO_CODIGO), TIPO_AUTO_DESC from gd_esquema.Maestra WHERE TIPO_AUTO_CODIGO is not null order by TIPO_AUTO_CODIGO
+	GO
+
+	/* falta crear tabla intermedia
+	--MIGRACION COMPRA_AUTOPARTE
+	INSERT INTO [REGISTROS_EN_FUGA].Compra_Autoparte
+		select DISTINCT(COMPRA_NRO),a.autoparte_codigo,'' categoria,mo.modelo_codigo,s.sucursal_id,f.fabricante_id,COMPRA_FECHA,COMPRA_PRECIO,1 cant_facturada
+		from gd_esquema.Maestra m
+		JOIN [REGISTROS_EN_FUGA].Autopartes a ON m.AUTO_PARTE_CODIGO = a.autoparte_codigo
+		JOIN [REGISTROS_EN_FUGA].Modelo_auto mo ON m.MODELO_CODIGO = mo.modelo_codigo
+		JOIN [REGISTROS_EN_FUGA].Sucursales s ON m.SUCURSAL_DIRECCION = s.sucursal_direccion
+		JOIN [REGISTROS_EN_FUGA].Fabricantes f ON m.FABRICANTE_NOMBRE = f.fabricante_nombre
+		order by COMPRA_NRO
+	GO
+	*/
 
 
 
