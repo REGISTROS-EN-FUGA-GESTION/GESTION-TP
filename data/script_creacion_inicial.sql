@@ -55,7 +55,7 @@ GO
 CREATE SCHEMA [REGISTROS_EN_FUGA]
 GO
 
---------------------------------------------------------CREACIÓN DE TABLAS----------------------------------------------------------
+--------------------------------------------------------CREACIï¿½N DE TABLAS----------------------------------------------------------
 
 	--CLIENTES
 		create table [REGISTROS_EN_FUGA].Clientes(
@@ -103,7 +103,7 @@ GO
 		tipo_caja_desc nvarchar(255) not null
 		)
 
-	--TIPO_TRANSMISIÓN
+	--TIPO_TRANSMISIï¿½N
 		create table [REGISTROS_EN_FUGA].Tipo_transmision(
 		tipo_transmision_codigo decimal(18) primary key not null,
 		tipo_transmision_desc nvarchar(255) not null
@@ -111,7 +111,7 @@ GO
 
 	--MOTORES
 		create table [REGISTROS_EN_FUGA].Motores(
-		motor_nro int primary key identity, --NO ME ACUERDO DE DONDE SACABAMOS ESTE NUMERO
+		motor_nro nvarchar(50) primary key,
 		tipo_motor decimal(18) not null
 		)
 	
@@ -124,7 +124,7 @@ GO
 		modelo_tipo_transmision_fk decimal(18) not null 
 		)
 
-	--AUTOMÓVILES
+	--AUTOMï¿½VILES
 		create table [REGISTROS_EN_FUGA].Automoviles(
 		auto_id			int primary key identity,
 		auto_nro_chasis nvarchar(50) not null,
@@ -137,7 +137,7 @@ GO
 		auto_tipo_fk    decimal(18)  not null
 		)
 
-	--COMPRA_AUTOMÓVIL
+	--COMPRA_AUTOMï¿½VIL
 		create table [REGISTROS_EN_FUGA].Compra_automovil(
 		compra_nro		   decimal(18)  primary key,
 		compra_fecha	   datetime2(3) not null,
@@ -187,7 +187,7 @@ GO
 		)
 
 
---------------------------------------------------------DECLARACIÓN DE CONSTRAINTS--------------------------------------------------
+--------------------------------------------------------DECLARACIï¿½N DE CONSTRAINTS--------------------------------------------------
 
 	--MODELO_AUTO
 		ALTER TABLE [REGISTROS_EN_FUGA].Modelo_auto 
@@ -197,7 +197,7 @@ GO
 			ADD CONSTRAINT FK_Tipo_Transmision FOREIGN KEY (modelo_tipo_transmision_fk) REFERENCES [REGISTROS_EN_FUGA].Tipo_transmision(tipo_transmision_codigo)
 
 
-	--AUTOMÓVILES
+	--AUTOMï¿½VILES
 		ALTER TABLE [REGISTROS_EN_FUGA].Automoviles
 			ADD CONSTRAINT FK_Auto_Modelo FOREIGN KEY (auto_modelo_fk) REFERENCES [REGISTROS_EN_FUGA].Modelo_auto(modelo_codigo)
 
@@ -205,7 +205,7 @@ GO
 			ADD CONSTRAINT FK_Auto_Tipo FOREIGN KEY (auto_tipo_fk) REFERENCES [REGISTROS_EN_FUGA].Tipo_auto(tipo_auto_codigo)
 
 
-	--COMPRA_AUTOMÓVIL
+	--COMPRA_AUTOMï¿½VIL
 		ALTER TABLE [REGISTROS_EN_FUGA].Compra_automovil 
 			ADD CONSTRAINT FK_Compra_Auto FOREIGN KEY (compra_auto_fk) REFERENCES [REGISTROS_EN_FUGA].Automoviles(auto_id)
 
@@ -259,9 +259,9 @@ GO
 
 
 
---------------------------------------------------------MIGRACIÓN DE DATOS----------------------------------------------------------
+--------------------------------------------------------MIGRACIï¿½N DE DATOS----------------------------------------------------------
 
-	--MIGRACIÓN FABRICANTES
+	--MIGRACIï¿½N FABRICANTES
 	BEGIN TRANSACTION
 		BEGIN TRY
 			INSERT INTO [REGISTROS_EN_FUGA].Fabricantes SELECT distinct(FABRICANTE_NOMBRE) FROM [GD2C2020].[gd_esquema].[Maestra] order by FABRICANTE_NOMBRE
@@ -271,7 +271,7 @@ GO
 		END CATCH
 	COMMIT TRANSACTION 
 
-	--MIGRACIÓN SUCURSALES
+	--MIGRACIï¿½N SUCURSALES
 	BEGIN TRANSACTION
 		BEGIN TRY
 			INSERT INTO [REGISTROS_EN_FUGA].Sucursales SELECT distinct(SUCURSAL_DIRECCION), SUCURSAL_MAIL, SUCURSAL_TELEFONO, SUCURSAL_CIUDAD 
@@ -318,3 +318,26 @@ GO
 		JOIN [REGISTROS_EN_FUGA].Tipo_transmision t ON m.TIPO_TRANSMISION_CODIGO = t.tipo_transmision_codigo
 		order by MODELO_CODIGO
 	GO
+
+	--MIGRACION MOTORES
+	INSERT INTO [REGISTROS_EN_FUGA].Motores
+		select DISTINCT(AUTO_NRO_MOTOR), TIPO_MOTOR_CODIGO from gd_esquema.Maestra WHERE AUTO_NRO_MOTOR is not null order by AUTO_NRO_MOTOR
+	GO
+
+	--MIGRACION TIPO_AUTO
+	INSERT INTO [REGISTROS_EN_FUGA].Tipo_auto
+		select DISTINCT(TIPO_AUTO_CODIGO), TIPO_AUTO_DESC from gd_esquema.Maestra WHERE TIPO_AUTO_CODIGO is not null order by TIPO_AUTO_CODIGO
+	GO
+
+	/* falta crear tabla intermedia
+	--MIGRACION COMPRA_AUTOPARTE
+	INSERT INTO [REGISTROS_EN_FUGA].Compra_Autoparte
+		select DISTINCT(COMPRA_NRO),a.autoparte_codigo,'' categoria,mo.modelo_codigo,s.sucursal_id,f.fabricante_id,COMPRA_FECHA,COMPRA_PRECIO,1 cant_facturada
+		from gd_esquema.Maestra m
+		JOIN [REGISTROS_EN_FUGA].Autopartes a ON m.AUTO_PARTE_CODIGO = a.autoparte_codigo
+		JOIN [REGISTROS_EN_FUGA].Modelo_auto mo ON m.MODELO_CODIGO = mo.modelo_codigo
+		JOIN [REGISTROS_EN_FUGA].Sucursales s ON m.SUCURSAL_DIRECCION = s.sucursal_direccion
+		JOIN [REGISTROS_EN_FUGA].Fabricantes f ON m.FABRICANTE_NOMBRE = f.fabricante_nombre
+		order by COMPRA_NRO
+	GO
+	*/
