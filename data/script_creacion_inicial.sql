@@ -55,7 +55,7 @@ GO
 CREATE SCHEMA [REGISTROS_EN_FUGA]
 GO
 
---------------------------------------------------------CREACIÓN DE TABLAS----------------------------------------------------------
+--------------------------------------------------------CREACI?N DE TABLAS----------------------------------------------------------
 
 	--CLIENTES
 		create table [REGISTROS_EN_FUGA].Clientes(
@@ -103,7 +103,7 @@ GO
 		tipo_caja_desc nvarchar(255) not null
 		)
 
-	--TIPO_TRANSMISIÓN
+	--TIPO_TRANSMISI?N
 		create table [REGISTROS_EN_FUGA].Tipo_transmision(
 		tipo_transmision_codigo decimal(18) primary key not null,
 		tipo_transmision_desc nvarchar(255) not null
@@ -124,7 +124,7 @@ GO
 		modelo_tipo_transmision_fk decimal(18) not null 
 		)
 
-	--AUTOMÓVILES
+	--AUTOM?VILES
 		create table [REGISTROS_EN_FUGA].Automoviles(
 		auto_id			int primary key identity,
 		auto_nro_chasis nvarchar(50) not null,
@@ -137,7 +137,7 @@ GO
 		auto_tipo_fk    decimal(18)  not null
 		)
 
-	--COMPRA_AUTOMÓVIL
+	--COMPRA_AUTOM?VIL
 		create table [REGISTROS_EN_FUGA].Compra_automovil(
 		compra_nro		   decimal(18)  primary key,
 		compra_fecha	   datetime2(3) not null,
@@ -187,7 +187,7 @@ GO
 		)
 
 
---------------------------------------------------------DECLARACIÓN DE CONSTRAINTS--------------------------------------------------
+--------------------------------------------------------DECLARACI?N DE CONSTRAINTS--------------------------------------------------
 
 	--MODELO_AUTO
 		ALTER TABLE [REGISTROS_EN_FUGA].Modelo_auto 
@@ -197,7 +197,7 @@ GO
 			ADD CONSTRAINT FK_Tipo_Transmision FOREIGN KEY (modelo_tipo_transmision_fk) REFERENCES [REGISTROS_EN_FUGA].Tipo_transmision(tipo_transmision_codigo)
 
 
-	--AUTOMÓVILES
+	--AUTOM?VILES
 		ALTER TABLE [REGISTROS_EN_FUGA].Automoviles
 			ADD CONSTRAINT FK_Auto_Modelo FOREIGN KEY (auto_modelo_fk) REFERENCES [REGISTROS_EN_FUGA].Modelo_auto(modelo_codigo)
 
@@ -205,7 +205,7 @@ GO
 			ADD CONSTRAINT FK_Auto_Tipo FOREIGN KEY (auto_tipo_fk) REFERENCES [REGISTROS_EN_FUGA].Tipo_auto(tipo_auto_codigo)
 
 
-	--COMPRA_AUTOMÓVIL
+	--COMPRA_AUTOM?VIL
 		ALTER TABLE [REGISTROS_EN_FUGA].Compra_automovil 
 			ADD CONSTRAINT FK_Compra_Auto FOREIGN KEY (compra_auto_fk) REFERENCES [REGISTROS_EN_FUGA].Automoviles(auto_id)
 
@@ -259,9 +259,9 @@ GO
 
 
 
---------------------------------------------------------MIGRACIÓN DE DATOS----------------------------------------------------------
+--------------------------------------------------------MIGRACI?N DE DATOS----------------------------------------------------------
 
-	--MIGRACIÓN FABRICANTES
+	--MIGRACI?N FABRICANTES
 	BEGIN TRANSACTION
 		BEGIN TRY
 			INSERT INTO [REGISTROS_EN_FUGA].Fabricantes SELECT distinct(FABRICANTE_NOMBRE) FROM [GD2C2020].[gd_esquema].[Maestra] order by FABRICANTE_NOMBRE
@@ -271,7 +271,7 @@ GO
 		END CATCH
 	COMMIT TRANSACTION 
 
-	--MIGRACIÓN SUCURSALES
+	--MIGRACI?N SUCURSALES
 	BEGIN TRANSACTION
 		BEGIN TRY
 			INSERT INTO [REGISTROS_EN_FUGA].Sucursales SELECT distinct(SUCURSAL_DIRECCION), SUCURSAL_MAIL, SUCURSAL_TELEFONO, SUCURSAL_CIUDAD 
@@ -284,8 +284,13 @@ GO
 
 	--MIGRACI?N CLIENTES
 	BEGIN TRY
-	INSERT INTO [REGISTROS_EN_FUGA].Clientes (cli_DNI, cli_nombre, cli_apellido, cli_direccion, cli_fecha_nac, cli_mail) SELECT DISTINCT(CLIENTE_DNI), CLIENTE_NOMBRE, CLIENTE_APELLIDO, CLIENTE_DIRECCION,  CLIENTE_FECHA_NAC, CLIENTE_MAIL 
-			FROM [GD2C2020].[gd_esquema].[Maestra] WHERE CLIENTE_DNI IS NOT NULL order by CLIENTE_DNI
+	INSERT INTO [REGISTROS_EN_FUGA].Clientes (cli_DNI, cli_nombre, cli_apellido, cli_direccion, cli_fecha_nac, cli_mail) 
+	SELECT DISTINCT DNI , NOMBRE, APELLIDO, DIRECCION, FEC_NAC, MAIL FROM (SELECT CLIENTE_DNI AS DNI, CLIENTE_NOMBRE AS NOMBRE, CLIENTE_APELLIDO AS APELLIDO, CLIENTE_DIRECCION AS DIRECCION,  CLIENTE_FECHA_NAC AS FEC_NAC, CLIENTE_MAIL  AS MAIL
+			FROM [GD2C2020].[gd_esquema].[Maestra] WHERE CLIENTE_DNI IS NOT NULL
+		UNION 
+		SELECT M.FAC_CLIENTE_DNI as DNI, M.FAC_CLIENTE_NOMBRE as NOMBRE, M.FAC_CLIENTE_APELLIDO as APELLIDO ,M.FAC_CLIENTE_DIRECCION DIRECCION, M.FAC_CLIENTE_FECHA_NAC AS FEC_NAC, M.FAC_CLIENTE_MAIL as MAIL 
+			FROM [GD2C2020].[gd_esquema].[Maestra] M 
+			WHERE FAC_CLIENTE_DNI IS NOT NULL) D
 	END TRY
 	BEGIN CATCH
 		RAISERROR('Hubo un error al insertar los Clientes',0,0)
@@ -318,3 +323,19 @@ GO
 		JOIN [REGISTROS_EN_FUGA].Tipo_transmision t ON m.TIPO_TRANSMISION_CODIGO = t.tipo_transmision_codigo
 		order by MODELO_CODIGO
 	GO
+
+	--MIGRACI?N FACTURAS
+	BEGIN TRY
+	INSERT INTO [REGISTROS_EN_FUGA].Facturas SELECT DISTINCT(FACTURA_NRO), FACTURA_FECHA, (SELECT SUM(ISNULL(CANT_FACTURADA,1)*PRECIO_FACTURADO) AS 
+    PRECIO FROM [GD2C2020].[gd_esquema].[Maestra] WHERE FACTURA_NRO = M.FACTURA_NRO AND PRECIO_FACTURADO IS NOT NULL) AS PRECIO_TOTAL_FACTURADO,
+    C.cliente_id, SV.sucursal_id, SC.sucursal_id
+        FROM [GD2C2020].[gd_esquema].[Maestra] M 
+        left JOIN [REGISTROS_EN_FUGA].Clientes c on M.CLIENTE_DNI = C.cli_DNI
+        LEFT JOIN [REGISTROS_EN_FUGA].Sucursales SV on M.FAC_SUCURSAL_DIRECCION = SV.sucursal_direccion
+        LEFT JOIN [REGISTROS_EN_FUGA].Sucursales SC on M.SUCURSAL_DIRECCION = SC.sucursal_direccion
+        --AGREGAR INNER DE AUTO
+        WHERE FACTURA_NRO IS NOT NULL order by FACTURA_NRO
+	END TRY
+	BEGIN CATCH
+		RAISERROR('Hubo un error al insertar las Autopartes',0,0)
+	END CATCH
