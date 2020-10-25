@@ -58,7 +58,7 @@ GO
 CREATE SCHEMA [REGISTROS_EN_FUGA]
 GO
 
---------------------------------------------------------CREACI?N DE TABLAS----------------------------------------------------------
+--------------------------------------------------------CREACIÓN DE TABLAS----------------------------------------------------------
 
 	--CLIENTES
 		create table [REGISTROS_EN_FUGA].Clientes(
@@ -82,44 +82,43 @@ GO
 
 	--AUTOPARTES
 		create table [REGISTROS_EN_FUGA].Autopartes(
-		autoparte_codigo      decimal(18) primary key not null,
-		autoparte_descripcion nvarchar(255) not null,
-		autoparte_precio_facturado decimal(18,2),	--poner not null
-		autoparte_precio_compra      decimal(18,2),	--poner not null
-		autoparte_modelo_fk     decimal(18) not null,
-		autoparte_fabricante_fk	   int         not null,
-		unique (autoparte_codigo)
+		autoparte_codigo             decimal(18) primary key,
+		autoparte_descripcion        nvarchar(255) not null,
+		autoparte_precio_facturado   decimal(18,2) not null,	--poner not null LISTO
+		autoparte_precio_compra      decimal(18,2) not null,	--poner not null LISTO
+		autoparte_modelo_fk          decimal(18)   not null,
+		autoparte_fabricante_fk	     int           not null
 		)
 
 	--FABRICANTES
 		create table [REGISTROS_EN_FUGA].Fabricantes(
-		fabricante_id int primary key identity,
+		fabricante_id     int primary key identity,
 		fabricante_nombre nvarchar(255) not null
 		)
 
 	--TIPO_AUTO
 		create table [REGISTROS_EN_FUGA].Tipo_auto(
 		tipo_auto_codigo decimal(18) primary key not null,
-		tipo_auto_desc nvarchar(255) not null
+		tipo_auto_desc   nvarchar(255) not null
 		)
 
 	--TIPO_CAJA
 		create table [REGISTROS_EN_FUGA].Tipo_caja(
-		tipo_caja_codigo decimal(18) primary key not null,
-		tipo_caja_desc nvarchar(255) not null
+		tipo_caja_codigo decimal(18) primary key,
+		tipo_caja_desc   nvarchar(255) not null
 		)
 
 
-	--TIPO_TRANSMISI?N
+	--TIPO_TRANSMISIÓN
 		create table [REGISTROS_EN_FUGA].Tipo_transmision(
-		tipo_transmision_codigo decimal(18) primary key not null,
-		tipo_transmision_desc nvarchar(255) not null
+		tipo_transmision_codigo decimal(18) primary key,
+		tipo_transmision_desc   nvarchar(255) not null
 		)
 
 	--MOTORES
 		create table [REGISTROS_EN_FUGA].Motores(
 		motor_nro  nvarchar(50) primary key,
-		tipo_motor decimal(18) not null
+		tipo_motor decimal(18)  not null
 		)
 	
 	--MODELO_AUTO
@@ -135,14 +134,14 @@ GO
 
 		create table [REGISTROS_EN_FUGA].Automoviles(
 		auto_id			int primary key identity,
-		auto_nro_chasis nvarchar(50) not null,
-		auto_nro_motor  nvarchar(50) not null,
-		auto_patente    nvarchar(50) not null,
-		auto_fecha_alta datetime2(3) not null,
-		auto_cant_kms   decimal(18)  not null,
-		auto_modelo_fk  decimal(18)  not null,
-		auto_precio		decimal(18,2)  not null,
-		auto_tipo_fk    decimal(18)  not null
+		auto_nro_chasis nvarchar(50)  not null,
+		auto_nro_motor  nvarchar(50)  not null,
+		auto_patente    nvarchar(50)  not null,
+		auto_fecha_alta datetime2(3)  not null,
+		auto_cant_kms   decimal(18)   not null,
+		auto_modelo_fk  decimal(18)   not null,
+		auto_precio		decimal(18,2) not null,
+		auto_tipo_fk    decimal(18)   not null
 		)
 
 	--COMPRA_AUTOM?VIL
@@ -156,11 +155,11 @@ GO
 
 	--COMPRA_AUTOPARTE
 		create table [REGISTROS_EN_FUGA].Compra_Autoparte(
-		compra_nro		   decimal(18) primary key,
-		categoria		   nvarchar(255),
-		compra_sucursal_fk int		   not null,
-		compra_fecha	   datetime2(3)  not null,
-		compra_precio_total	   decimal(18,2)  not null	--esta bien esto como en factura?
+		compra_nro		    decimal(18) primary key,
+		categoria		    nvarchar(255),
+		compra_sucursal_fk  int		    not null,
+		compra_fecha	    datetime2(3) not null,
+		compra_precio_total	decimal(18,2) not null
 		)
 
 	--AUTOPARTE_POR_COMPRA
@@ -170,11 +169,6 @@ GO
 		autoparte_id decimal(18) not null,
 		cantidad     decimal(18) not null,
 		)
-		/* cambio la primary key (autoparte_id,compra_nro) por id autogenerado
-			select * 
-			from gd_esquema.Maestra where (AUTO_PARTE_CODIGO = 5017 OR AUTO_PARTE_CODIGO = 5006)
-			and (compra_nro = 175488  OR compra_nro = 135193) 
-		*/
 
 	--FACTURAS
 		create table [REGISTROS_EN_FUGA].Facturas(
@@ -207,7 +201,7 @@ GO
 
 
 
---------------------------------------------------------DECLARACI?N DE CONSTRAINTS--------------------------------------------------
+--------------------------------------------------------DECLARACIÓN DE CONSTRAINTS--------------------------------------------------
 
 	--MODELO_AUTO
 		ALTER TABLE [REGISTROS_EN_FUGA].Modelo_auto 
@@ -217,7 +211,7 @@ GO
 			ADD CONSTRAINT FK_Tipo_Transmision FOREIGN KEY (modelo_tipo_transmision_fk) REFERENCES [REGISTROS_EN_FUGA].Tipo_transmision(tipo_transmision_codigo)
 
 
-	--AUTOM?VILES
+	--AUTOMÓVILES
 
 		ALTER TABLE [REGISTROS_EN_FUGA].Automoviles
 			ADD CONSTRAINT FK_Auto_Modelo FOREIGN KEY (auto_modelo_fk) REFERENCES [REGISTROS_EN_FUGA].Modelo_auto(modelo_codigo)
@@ -226,7 +220,7 @@ GO
 			ADD CONSTRAINT FK_Auto_Tipo FOREIGN KEY (auto_tipo_fk) REFERENCES [REGISTROS_EN_FUGA].Tipo_auto(tipo_auto_codigo)
 
 
-	--COMPRA_AUTOM?VIL
+	--COMPRA_AUTOMÓVIL
 
 		ALTER TABLE [REGISTROS_EN_FUGA].Compra_automovil 
 			ADD CONSTRAINT FK_Compra_Auto FOREIGN KEY (compra_auto_fk) REFERENCES [REGISTROS_EN_FUGA].Automoviles(auto_id)
@@ -289,44 +283,26 @@ GO
 
 --------------------------------------------------------MIGRACI?N DE DATOS----------------------------------------------------------
 
-	--MIGRACI?N FABRICANTES
-
-	BEGIN TRANSACTION
-		BEGIN TRY
-			INSERT INTO [REGISTROS_EN_FUGA].Fabricantes SELECT distinct(FABRICANTE_NOMBRE) FROM [GD2C2020].[gd_esquema].[Maestra] order by FABRICANTE_NOMBRE
-		END TRY
-		BEGIN CATCH
-			RAISERROR('Hubo un error al insertar los fabricantes', 0,0)
-		END CATCH
-	COMMIT TRANSACTION 
+	--MIGRACIÓN FABRICANTES
+		INSERT INTO [REGISTROS_EN_FUGA].Fabricantes SELECT distinct(FABRICANTE_NOMBRE) FROM [GD2C2020].[gd_esquema].[Maestra] order by FABRICANTE_NOMBRE
 
 
-	--MIGRACI?N SUCURSALES
-	BEGIN TRANSACTION
-		BEGIN TRY
-			INSERT INTO [REGISTROS_EN_FUGA].Sucursales SELECT distinct(SUCURSAL_DIRECCION), SUCURSAL_MAIL, SUCURSAL_TELEFONO, SUCURSAL_CIUDAD 
-			FROM [GD2C2020].[gd_esquema].[Maestra] WHERE SUCURSAL_DIRECCION IS NOT NULL order by SUCURSAL_DIRECCION
-		END TRY
-		BEGIN CATCH
-			RAISERROR('Hubo un error al insertar las Sucursales',0,0)
-		END CATCH
-	COMMIT TRANSACTION 
+	--MIGRACIÓN SUCURSALES
+		INSERT INTO [REGISTROS_EN_FUGA].Sucursales SELECT distinct(SUCURSAL_DIRECCION), SUCURSAL_MAIL, SUCURSAL_TELEFONO, SUCURSAL_CIUDAD 
+		FROM [GD2C2020].[gd_esquema].[Maestra] WHERE SUCURSAL_DIRECCION IS NOT NULL order by SUCURSAL_DIRECCION
+		 
 
-	--MIGRACI�N CLIENTES
-	BEGIN TRY
+	--MIGRACIÓN CLIENTES
 	INSERT INTO [REGISTROS_EN_FUGA].Clientes (cli_DNI, cli_nombre, cli_apellido, cli_direccion, cli_fecha_nac, cli_mail) 
-	SELECT DISTINCT DNI , NOMBRE, APELLIDO, DIRECCION, FEC_NAC, MAIL FROM (SELECT CLIENTE_DNI AS DNI, CLIENTE_NOMBRE AS NOMBRE, CLIENTE_APELLIDO AS APELLIDO, CLIENTE_DIRECCION AS DIRECCION,  CLIENTE_FECHA_NAC AS FEC_NAC, CLIENTE_MAIL  AS MAIL
-			FROM [GD2C2020].[gd_esquema].[Maestra] WHERE CLIENTE_DNI IS NOT NULL
+		SELECT DISTINCT DNI , NOMBRE, APELLIDO, DIRECCION, FEC_NAC, MAIL FROM (SELECT CLIENTE_DNI AS DNI, CLIENTE_NOMBRE AS NOMBRE, CLIENTE_APELLIDO AS APELLIDO, CLIENTE_DIRECCION AS DIRECCION,  CLIENTE_FECHA_NAC AS FEC_NAC, CLIENTE_MAIL  AS MAIL
+		FROM [GD2C2020].[gd_esquema].[Maestra] WHERE CLIENTE_DNI IS NOT NULL
 		UNION 
 		SELECT M.FAC_CLIENTE_DNI as DNI, M.FAC_CLIENTE_NOMBRE as NOMBRE, M.FAC_CLIENTE_APELLIDO as APELLIDO ,M.FAC_CLIENTE_DIRECCION DIRECCION, M.FAC_CLIENTE_FECHA_NAC AS FEC_NAC, M.FAC_CLIENTE_MAIL as MAIL 
-			FROM [GD2C2020].[gd_esquema].[Maestra] M 
-			WHERE FAC_CLIENTE_DNI IS NOT NULL) D
-	END TRY
-	BEGIN CATCH
-		RAISERROR('Hubo un error al insertar los Clientes',0,0)
-	END CATCH
+		FROM [GD2C2020].[gd_esquema].[Maestra] M 
+		WHERE FAC_CLIENTE_DNI IS NOT NULL) D
+	
 
-	--MIGRACI�N AUTOPARTES
+	--MIGRACIÓN AUTOPARTES
 	INSERT INTO [REGISTROS_EN_FUGA].Autopartes		--da warning y hay que insertar dos veces ??
 		SELECT DISTINCT(AUTO_PARTE_CODIGO), AUTO_PARTE_DESCRIPCION, max(PRECIO_FACTURADO) precio_facturado, max(COMPRA_PRECIO) compra_precio, mo.modelo_codigo, f.fabricante_id
 		FROM [GD2C2020].[gd_esquema].[Maestra] m
@@ -337,17 +313,17 @@ GO
 		order by AUTO_PARTE_CODIGO
 	GO		-----------------------------------------------------------------------------------------------------------------falta hacer que precio compra y facturado no queden intercalados en dos registros
 	
-	--MIGRACI�N TIPO_CAJA
+	--MIGRACIÓN TIPO_CAJA
 	INSERT INTO [REGISTROS_EN_FUGA].Tipo_caja 
 		select DISTINCT(TIPO_CAJA_CODIGO), TIPO_CAJA_DESC from gd_esquema.Maestra WHERE TIPO_CAJA_CODIGO is not null order by TIPO_CAJA_CODIGO
 	GO
 
-	--MIGRACI�N TIPO_TRANSMISION
+	--MIGRACIÓN TIPO_TRANSMISION
 	INSERT INTO [REGISTROS_EN_FUGA].Tipo_transmision
 		select DISTINCT(TIPO_TRANSMISION_CODIGO), TIPO_TRANSMISION_DESC from gd_esquema.Maestra WHERE TIPO_TRANSMISION_CODIGO is not null order by TIPO_TRANSMISION_CODIGO
 	GO
 
-	--MIGRACI�N MODELO_AUTO
+	--MIGRACIÓN MODELO_AUTO
 	INSERT INTO [REGISTROS_EN_FUGA].Modelo_auto
 		select DISTINCT(MODELO_CODIGO),MODELO_NOMBRE,MODELO_POTENCIA,c.TIPO_CAJA_CODIGO,t.TIPO_TRANSMISION_CODIGO 
 		from gd_esquema.Maestra m
@@ -356,8 +332,7 @@ GO
 		order by MODELO_CODIGO
 	GO
 
-	--MIGRACI?N FACTURAS
-	BEGIN TRY
+	--MIGRACIÓN FACTURAS
 	INSERT INTO [REGISTROS_EN_FUGA].Facturas SELECT DISTINCT(FACTURA_NRO), FACTURA_FECHA, (SELECT SUM(ISNULL(CANT_FACTURADA,1)*PRECIO_FACTURADO) AS 
     PRECIO FROM [GD2C2020].[gd_esquema].[Maestra] WHERE FACTURA_NRO = M.FACTURA_NRO AND PRECIO_FACTURADO IS NOT NULL) AS PRECIO_TOTAL_FACTURADO,
     C.cliente_id, SV.sucursal_id, SC.sucursal_id, A.auto_id
@@ -367,10 +342,7 @@ GO
         LEFT JOIN [REGISTROS_EN_FUGA].Sucursales SC on M.SUCURSAL_DIRECCION = SC.sucursal_direccion
         LEFT JOIN [REGISTROS_EN_FUGA].Automoviles A on M.AUTO_PATENTE = A.auto_patente
         WHERE FACTURA_NRO IS NOT NULL order by FACTURA_NRO
-	END TRY
-	BEGIN CATCH
-		RAISERROR('Hubo un error al insertar las Autopartes',0,0)
-	END CATCH
+
 
 	--MIGRACION MOTORES
 	INSERT INTO [REGISTROS_EN_FUGA].Motores
@@ -384,14 +356,14 @@ GO
 
 	--MIGRACION COMPRA_AUTOPARTE
 	INSERT INTO [REGISTROS_EN_FUGA].Compra_Autoparte
-		select DISTINCT(COMPRA_NRO),'ninguna' categoria,s.sucursal_id,COMPRA_FECHA,68 precio_total										---calcular precio total
+		select DISTINCT(COMPRA_NRO),'ninguna' categoria,s.sucursal_id,COMPRA_FECHA,68 precio_total	---calcular precio total
 		from gd_esquema.Maestra m
 		JOIN [REGISTROS_EN_FUGA].Sucursales s ON m.SUCURSAL_DIRECCION = s.sucursal_direccion
 		order by COMPRA_NRO
 	GO
 	
 	--MIGRACION AUTOPARTE_POR_COMPRA
-	INSERT INTO [REGISTROS_EN_FUGA].Autoparte_por_compra										--hay compras que aparecen en compra_autoparte pero no en autoparte_por_compra
+	INSERT INTO [REGISTROS_EN_FUGA].Autoparte_por_compra	--hay compras que aparecen en compra_autoparte pero no en autoparte_por_compra
 		select DISTINCT(c.compra_nro),a.autoparte_codigo,COMPRA_CANT from gd_esquema.Maestra m
 		JOIN [REGISTROS_EN_FUGA].Autopartes a ON m.AUTO_PARTE_CODIGO = a.autoparte_codigo
 		JOIN [REGISTROS_EN_FUGA].Compra_Autoparte c ON m.COMPRA_NRO = c.compra_nro
@@ -405,4 +377,3 @@ GO
 	    M.tipo_auto_codigo from [GD2C2020].[gd_esquema].[Maestra] M WHERE M.AUTO_NRO_CHASIS IS NOT NULL AND M.FACTURA_NRO IS NULL ORDER BY AUTO_NRO_CHASIS
 	GO
 
-	--select * from [REGISTROS_EN_FUGA].automoviles
