@@ -386,4 +386,19 @@ GO
 
 	--MIGRACIÓN AUTOPARTE_POR_VENTA
 	INSERT INTO [REGISTROS_EN_FUGA].Autoparte_por_venta select M.AUTO_PARTE_CODIGO, M.FACTURA_NRO, M.CANT_FACTURADA
-		from gd_esquema.Maestra M WHERE FACTURA_NRO IS NOT NULL AND SUCURSAL_DIRECCION IS NULL 
+		from gd_esquema.Maestra M WHERE FACTURA_NRO IS NOT NULL AND SUCURSAL_DIRECCION IS NULL
+		
+	--MIGRACIÓN STOCK
+	INSERT INTO [REGISTROS_EN_FUGA].Stock SELECT C.compra_auto_fk, NULL, A.auto_precio * 1.2 , C.compra_sucursal_fk, 1
+		from [REGISTROS_EN_FUGA].Compra_automovil C
+		LEFT JOIN [REGISTROS_EN_FUGA].Facturas F on C.compra_auto_fk = F.fac_auto_fk and F.fac_auto_fk IS NULL
+		INNER JOIN [REGISTROS_EN_FUGA].Automoviles A on C.compra_auto_fk = A.auto_id
+
+
+	INSERT INTO [REGISTROS_EN_FUGA].Stock SELECT NULL AS AUTO, A.autoparte_codigo, (A.autoparte_precio_compra * 1.2) AS PRECIO_VENTA, NULL AS SUCURSAL
+		,((SELECT SUM(ISNULL(AC1.cantidad,0)) FROM [REGISTROS_EN_FUGA].Autoparte_por_compra AC1 where AC1.autoparte_id = A.autoparte_codigo) -
+		(SELECT SUM(ISNULL(AV1.cantidad,0)) FROM [REGISTROS_EN_FUGA].Autoparte_por_venta AV1 where AV1.autoparte_id = A.autoparte_codigo)) as CANTIDAD_TOTAL
+		from [REGISTROS_EN_FUGA].Autopartes A
+		LEFT JOIN [REGISTROS_EN_FUGA].Autoparte_por_compra AC on AC.autoparte_id = autoparte_codigo
+		LEFT JOIN [REGISTROS_EN_FUGA].Autoparte_por_venta AV on AV.autoparte_id = autoparte_codigo
+		GROUP BY A.autoparte_codigo, A.autoparte_precio_compra 
