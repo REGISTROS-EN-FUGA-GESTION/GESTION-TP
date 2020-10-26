@@ -3,67 +3,30 @@ GO
 
 IF EXISTS ( SELECT 1 FROM information_schema.schemata WHERE   schema_name = 'REGISTROS_EN_FUGA' )
 	BEGIN
-	---------Elimina las Constraints ---------------------
-	
-		IF object_id('REGISTROS_EN_FUGA.Automoviles') is not null
-		ALTER TABLE [REGISTROS_EN_FUGA].Automoviles DROP CONSTRAINT FK_Auto_Modelo
-			
-
-		IF object_id('REGISTROS_EN_FUGA.Modelo_auto') is not null
-			ALTER TABLE [REGISTROS_EN_FUGA].Modelo_auto DROP CONSTRAINT FK_Tipo_Caja_cod
-			ALTER TABLE [REGISTROS_EN_FUGA].Modelo_auto DROP CONSTRAINT FK_Tipo_Transmision
-			
-
-		IF object_id('REGISTROS_EN_FUGA.Compra_automovil') is not null
-		ALTER TABLE [REGISTROS_EN_FUGA].Compra_automovil DROP CONSTRAINT FK_Compra_Sucursal 
-		ALTER TABLE [REGISTROS_EN_FUGA].Compra_automovil DROP CONSTRAINT FK_Compra_Auto
-			
-
-		IF object_id('REGISTROS_EN_FUGA.Compra_Autoparte') is not null
-		ALTER TABLE [REGISTROS_EN_FUGA].Compra_Autoparte DROP CONSTRAINT FK_Compra_AutoParte_Cod
-		ALTER TABLE [REGISTROS_EN_FUGA].Compra_Autoparte DROP CONSTRAINT FK_Compra_Auto_Modelo
-		ALTER TABLE [REGISTROS_EN_FUGA].Compra_Autoparte DROP CONSTRAINT FK_Compra_Sucursal_cod
-		ALTER TABLE [REGISTROS_EN_FUGA].Compra_Autoparte DROP CONSTRAINT FK_Fabricante_id
-				
-
-		IF object_id('REGISTROS_EN_FUGA.Facturas') is not null
-		ALTER TABLE [REGISTROS_EN_FUGA].Facturas DROP CONSTRAINT FK_Cliente
-		ALTER TABLE [REGISTROS_EN_FUGA].Facturas DROP CONSTRAINT FK_Sucursal
-		ALTER TABLE [REGISTROS_EN_FUGA].Facturas DROP CONSTRAINT FK_Sucursal_Compra
-		ALTER TABLE [REGISTROS_EN_FUGA].Facturas DROP CONSTRAINT FK_Auto
-				
-
-		IF object_id('REGISTROS_EN_FUGA.Autoparte_por_venta') is not null
-		ALTER TABLE [REGISTROS_EN_FUGA].Autoparte_por_venta DROP CONSTRAINT FK_Autoparte 
-		ALTER TABLE [REGISTROS_EN_FUGA].Autoparte_por_venta DROP CONSTRAINT FK_Factura
-			
-
-		IF object_id('REGISTROS_EN_FUGA.Stock') is not null
-		ALTER TABLE [REGISTROS_EN_FUGA].Stock DROP CONSTRAINT FK_Item_Auto
-		ALTER TABLE [REGISTROS_EN_FUGA].Stock DROP CONSTRAINT FK_Item_Autoparte
-		ALTER TABLE [REGISTROS_EN_FUGA].Stock DROP CONSTRAINT FK_Item_Sucursal
-			
 		IF object_id('REGISTROS_EN_FUGA.Automoviles') is not null
 			drop table [REGISTROS_EN_FUGA].Automoviles
 
-		IF object_id('REGISTROS_EN_FUGA.Modelo_auto') is not null
-			drop table [REGISTROS_EN_FUGA].Modelo_auto
+		IF object_id('REGISTROS_EN_FUGA.Autoparte_por_compra') is not null
+			drop table [REGISTROS_EN_FUGA].Autoparte_por_compra
+
+		IF object_id('REGISTROS_EN_FUGA.Compra_Autoparte') is not null
+			drop table [REGISTROS_EN_FUGA].Compra_Autoparte
 
 		IF object_id('REGISTROS_EN_FUGA.Compra_automovil') is not null
 			drop table [REGISTROS_EN_FUGA].Compra_automovil
 
-		IF object_id('REGISTROS_EN_FUGA.Compra_Autoparte') is not null
-				drop table [REGISTROS_EN_FUGA].Compra_Autoparte
-
-		IF object_id('REGISTROS_EN_FUGA.Facturas') is not null
-				drop table [REGISTROS_EN_FUGA].Facturas
-
 		IF object_id('REGISTROS_EN_FUGA.Autoparte_por_venta') is not null
 			drop table [REGISTROS_EN_FUGA].Autoparte_por_venta
 
+		IF object_id('REGISTROS_EN_FUGA.Facturas') is not null
+			drop table [REGISTROS_EN_FUGA].Facturas
+
 		IF object_id('REGISTROS_EN_FUGA.Stock') is not null
 			drop table [REGISTROS_EN_FUGA].Stock
-		
+
+		IF object_id('REGISTROS_EN_FUGA.Modelo_auto') is not null
+			drop table [REGISTROS_EN_FUGA].Modelo_auto
+
 		IF object_id('REGISTROS_EN_FUGA.Clientes') is not null
 			drop table [REGISTROS_EN_FUGA].Clientes
 
@@ -192,14 +155,11 @@ GO
 
 	--COMPRA_AUTOPARTE
 		create table [REGISTROS_EN_FUGA].Compra_Autoparte(
-		compra_nro		   decimal(18) primary key,
-										  
-		categoria		   nvarchar(255),
-										  
-		compra_sucursal_fk int		   not null,
-										
+		compra_nro		   decimal(18) primary key,							  
+		categoria		   nvarchar(255),									  
+		compra_sucursal_fk int		   not null,									
 		compra_fecha	   datetime2(3)  not null,
-		compra_precio_total	   decimal(18,2)  not null	--esta bien esto como en factura?
+		compra_precio_total	   decimal(18,2)  not null	
 		)
 		
 	--AUTOPARTE_POR_COMPRA
@@ -222,7 +182,7 @@ GO
 		fac_precio_total_facturado decimal(18,2) not null,
 		fac_cliente_fk         int not null,
 		fac_sucursal_fk	       int not null,
-		fac_sucursal_compra_fk int ,
+		fac_sucursal_compra_fk int,
 		fac_auto_fk			   int 
 		)
 
@@ -243,163 +203,6 @@ GO
 		item_precio_venta decimal(18,2) not null,
 		item_sucursal_fk  int		  not null
 		)
-
---------------------------------------------------------DECLARACI?N DE CONSTRAINTS--------------------------------------------------
-
-		--CLIENTES
-		create table [REGISTROS_EN_FUGA].Clientes(
-		cliente_id int primary key identity,
-		cli_nombre    nvarchar(255) not null,
-		cli_apellido  nvarchar(255) not null,
-		cli_direccion nvarchar(255) not null,
-		cli_DNI       decimal(18),
-		cli_fecha_nac datetime2(3)  not null,
-		cli_mail	  nvarchar(255) not null
-		)
-
-	--SUCURSALES
-		create table [REGISTROS_EN_FUGA].Sucursales(
-		sucursal_id int primary key identity,
-		sucursal_direccion nvarchar(255) not null,
-		sucursal_mail      nvarchar(255) not null,
-		sucursal_telefono  decimal(18) not null,
-		sucursal_ciudad	   nvarchar(255) not null
-		)
-
-	--AUTOPARTES
-		create table [REGISTROS_EN_FUGA].Autopartes(
-		autoparte_codigo      decimal(18) primary key not null,
-		autoparte_descripcion nvarchar(255) not null,
-		autoparte_precio_facturado decimal(18,2),	--poner not null
-		autoparte_precio_compra      decimal(18,2),	--poner not null
-		autoparte_modelo_fk     decimal(18) not null,
-		autoparte_fabricante_fk	   int         not null,
-		unique (autoparte_codigo)
-		)
-
-	--FABRICANTES
-		create table [REGISTROS_EN_FUGA].Fabricantes(
-		fabricante_id int primary key identity,
-		fabricante_nombre nvarchar(255) not null
-		)
-
-	--TIPO_AUTO
-		create table [REGISTROS_EN_FUGA].Tipo_auto(
-		tipo_auto_codigo decimal(18) primary key not null,
-		tipo_auto_desc nvarchar(255) not null
-		)
-
-	--TIPO_CAJA
-		create table [REGISTROS_EN_FUGA].Tipo_caja(
-		tipo_caja_codigo decimal(18) primary key not null,
-		tipo_caja_desc nvarchar(255) not null
-		)
-
-
-	--TIPO_TRANSMISI?N
-		create table [REGISTROS_EN_FUGA].Tipo_transmision(
-		tipo_transmision_codigo decimal(18) primary key not null,
-		tipo_transmision_desc nvarchar(255) not null
-		)
-
-	--MOTORES
-		create table [REGISTROS_EN_FUGA].Motores(
-		motor_nro  nvarchar(50) primary key,
-		tipo_motor decimal(18) not null
-		)
-	
-	--MODELO_AUTO
-		create table [REGISTROS_EN_FUGA].Modelo_auto(
-		modelo_codigo			   decimal(18)  primary key,
-		modelo_nombre			   nvarchar(255) not null,
-		modelo_potencia			   decimal(18)   not null,
-		modelo_tipo_caja_fk        decimal(18) not null,
-		modelo_tipo_transmision_fk decimal(18) not null 
-		)
-
-	--AUTOM?VILES
-
-		create table [REGISTROS_EN_FUGA].Automoviles(
-		auto_id			int primary key identity,
-		auto_nro_chasis nvarchar(50) not null,
-		auto_nro_motor  nvarchar(50) not null,
-		auto_patente    nvarchar(50) not null,
-		auto_fecha_alta datetime2(3) not null,
-		auto_cant_kms   decimal(18)  not null,
-		auto_modelo_fk  decimal(18)  not null,
-		auto_precio		decimal(18,2)  not null,
-		auto_tipo_fk    decimal(18)  not null
-		)
-
-	--COMPRA_AUTOM?VIL
-
-		create table [REGISTROS_EN_FUGA].Compra_automovil(
-		compra_nro		   decimal(18)  primary key,
-		compra_fecha	   datetime2(3) not null,
-		compra_auto_fk     int          not null,
-		compra_sucursal_fk int			not null
-		)
-
-	--COMPRA_AUTOPARTE
-		create table [REGISTROS_EN_FUGA].Compra_Autoparte(
-		compra_nro		   decimal(18) primary key,
-										  
-		categoria		   nvarchar(255),
-										  
-		compra_sucursal_fk int		   not null,
-										
-		compra_fecha	   datetime2(3)  not null,
-		compra_precio_total	   decimal(18,2)  not null	--esta bien esto como en factura?
-		)
-		
-	--AUTOPARTE_POR_COMPRA
-		create table [REGISTROS_EN_FUGA].Autoparte_por_compra(
-		auto_compra_id int primary key identity,
-		compra_nro	 decimal(18) not null,
-		autoparte_id decimal(18) not null,
-		cantidad     decimal(18) not null,
-		)
-		/* cambio la primary key (autoparte_id,compra_nro) por id autogenerado
-			select * 
-			from gd_esquema.Maestra where (AUTO_PARTE_CODIGO = 5017 OR AUTO_PARTE_CODIGO = 5006)
-			and (compra_nro = 175488  OR compra_nro = 135193) 
-		*/
-																		
-			
-																					   
-													 
-	
-
-	--FACTURAS
-		create table [REGISTROS_EN_FUGA].Facturas(
-		factura_nro			decimal(18)  primary key,
-		fac_fecha	        datetime2(3) not null,
-		fac_precio_total_facturado decimal(18,2) not null,
-		fac_cliente_fk         int not null,
-		fac_sucursal_fk	       int not null,
-		fac_sucursal_compra_fk int ,
-		fac_auto_fk			   int 
-		)
-
-	--AUTOPARTE_POR_VENTA
-		create table [REGISTROS_EN_FUGA].Autoparte_por_venta(
-		autoparte_id decimal(18) not null,
-		factura_id	 decimal(18) not null,
-		cantidad     int         not null,
-		primary key (autoparte_id,factura_id) 
-		)
-
-
-	--STOCK
-		create table [REGISTROS_EN_FUGA].Stock(
-		item_id		      decimal(18) primary key identity,
-		item_auto_fk      int         not null,
-		item_autoparte_fk decimal(18) not null,
-		item_precio_venta decimal(18,2) not null,
-		item_sucursal_fk  int		  not null
-		)
-
-
 
 --------------------------------------------------------DECLARACI?N DE CONSTRAINTS--------------------------------------------------
 
@@ -438,23 +241,8 @@ GO
 
 	--COMPRA_AUTOPARTE
 		ALTER TABLE [REGISTROS_EN_FUGA].Compra_Autoparte 
-			ADD CONSTRAINT FK_Compra_AutoParte_Cod FOREIGN KEY (autoparte_cod_fk) REFERENCES [REGISTROS_EN_FUGA].Autopartes(autoparte_codigo)
-
-		ALTER TABLE [REGISTROS_EN_FUGA].Compra_Autoparte 
-			ADD CONSTRAINT FK_Compra_Auto_Modelo FOREIGN KEY (auto_modelo_fk) REFERENCES [REGISTROS_EN_FUGA].Modelo_auto(modelo_codigo)
-		
-
-				   
-		ALTER TABLE [REGISTROS_EN_FUGA].Compra_Autoparte 
 			ADD CONSTRAINT FK_Compra_Sucursal_cod FOREIGN KEY (compra_sucursal_fk) REFERENCES [REGISTROS_EN_FUGA].Sucursales(sucursal_id)
-
-
-					   
-		ALTER TABLE [REGISTROS_EN_FUGA].Compra_Autoparte 
-			ADD CONSTRAINT FK_Fabricante_id FOREIGN KEY (fabricante_fk) REFERENCES [REGISTROS_EN_FUGA].Fabricantes(fabricante_id)
-
 													  
-
 	--AUTOPARTE_POR_COMPRA
 		ALTER TABLE [REGISTROS_EN_FUGA].Autoparte_por_compra
 			ADD CONSTRAINT FK_Compra FOREIGN KEY (compra_nro) REFERENCES [REGISTROS_EN_FUGA].Compra_Autoparte(compra_nro)
@@ -479,7 +267,7 @@ GO
 
 	--AUTOPARTE_POR_VENTA
 		ALTER TABLE [REGISTROS_EN_FUGA].Autoparte_por_venta
-			ADD CONSTRAINT FK_Autoparte FOREIGN KEY (autoparte_id) REFERENCES [REGISTROS_EN_FUGA].Autopartes(autoparte_codigo)
+			ADD CONSTRAINT FK_Autoparte_Venta FOREIGN KEY (autoparte_id) REFERENCES [REGISTROS_EN_FUGA].Autopartes(autoparte_codigo)
 
 		ALTER TABLE [REGISTROS_EN_FUGA].Autoparte_por_venta
 			ADD CONSTRAINT FK_Factura FOREIGN KEY (factura_id) REFERENCES [REGISTROS_EN_FUGA].Facturas(factura_nro)
@@ -514,11 +302,6 @@ GO
 		SELECT M.FAC_CLIENTE_DNI as DNI, M.FAC_CLIENTE_NOMBRE as NOMBRE, M.FAC_CLIENTE_APELLIDO as APELLIDO ,M.FAC_CLIENTE_DIRECCION DIRECCION, M.FAC_CLIENTE_FECHA_NAC AS FEC_NAC, M.FAC_CLIENTE_MAIL as MAIL 
 			FROM [GD2C2020].[gd_esquema].[Maestra] M 
 			WHERE FAC_CLIENTE_DNI IS NOT NULL) D
-
-	--MIGRACI?N AUTOPARTES
-																						 
-	INSERT INTO [REGISTROS_EN_FUGA].Autopartes SELECT DISTINCT(AUTO_PARTE_CODIGO), AUTO_PARTE_DESCRIPCION, PRECIO_FACTURADO
-			FROM [GD2C2020].[gd_esquema].[Maestra] WHERE PRECIO_FACTURADO IS NOT NULL AND AUTO_PARTE_CODIGO IS NOT NULL order by AUTO_PARTE_CODIGO
 	
 	--MIGRACIO?N TIPO_CAJA
 	INSERT INTO [REGISTROS_EN_FUGA].Tipo_caja 
@@ -538,6 +321,17 @@ GO
 		JOIN [REGISTROS_EN_FUGA].Tipo_transmision t ON m.TIPO_TRANSMISION_CODIGO = t.tipo_transmision_codigo
 		order by MODELO_CODIGO
 
+	--MIGRACI�N AUTOPARTES
+	INSERT INTO [REGISTROS_EN_FUGA].Autopartes	
+		SELECT DISTINCT(AUTO_PARTE_CODIGO), AUTO_PARTE_DESCRIPCION, max(PRECIO_FACTURADO) precio_facturado, max(COMPRA_PRECIO) compra_precio, mo.modelo_codigo, f.fabricante_id
+		FROM [GD2C2020].[gd_esquema].[Maestra] m
+		JOIN [REGISTROS_EN_FUGA].Modelo_auto mo ON m.MODELO_CODIGO = mo.modelo_codigo
+		JOIN [REGISTROS_EN_FUGA].Fabricantes f ON m.FABRICANTE_NOMBRE = f.fabricante_nombre
+		WHERE AUTO_PARTE_CODIGO IS NOT NULL
+		group by AUTO_PARTE_CODIGO, AUTO_PARTE_DESCRIPCION, mo.modelo_codigo, f.fabricante_id
+		order by AUTO_PARTE_CODIGO
+	GO		
+
 	--MIGRACION MOTORES
 	INSERT INTO [REGISTROS_EN_FUGA].Motores
 		select DISTINCT(AUTO_NRO_MOTOR), TIPO_MOTOR_CODIGO from gd_esquema.Maestra WHERE AUTO_NRO_MOTOR is not null order by AUTO_NRO_MOTOR
@@ -549,13 +343,17 @@ GO
    
 
 	--MIGRACION COMPRA_AUTOPARTE
-	INSERT INTO [REGISTROS_EN_FUGA].Compra_Autoparte
-		select DISTINCT(COMPRA_NRO),'ninguna' categoria,s.sucursal_id,COMPRA_FECHA,68 precio_total										---calcular precio total
-		from gd_esquema.Maestra m
-		JOIN [REGISTROS_EN_FUGA].Sucursales s ON m.SUCURSAL_DIRECCION = s.sucursal_direccion
+    INSERT INTO [REGISTROS_EN_FUGA].Compra_Autoparte
+        select DISTINCT(COMPRA_NRO),'ninguna' categoria,s.sucursal_id,COMPRA_FECHA, (select sum(COMPRA_CANT*compra_precio) precio_total from gd_esquema.Maestra 
+		where COMPRA_NRO = m.COMPRA_NRO) as precio_total
+        from gd_esquema.Maestra m
+        JOIN [REGISTROS_EN_FUGA].Sucursales s ON m.SUCURSAL_DIRECCION = s.sucursal_direccion
+        where AUTO_PARTE_CODIGO is not null
+        order by COMPRA_NRO DESC
+    GO
 
 	--MIGRACION AUTOPARTE_POR_COMPRA
-	INSERT INTO [REGISTROS_EN_FUGA].Autoparte_por_compra	--falta cargar autopartes para que funcione
+	INSERT INTO [REGISTROS_EN_FUGA].Autoparte_por_compra
 		select DISTINCT(c.compra_nro),a.autoparte_codigo,COMPRA_CANT from gd_esquema.Maestra m
 		JOIN [REGISTROS_EN_FUGA].Autopartes a ON m.AUTO_PARTE_CODIGO = a.autoparte_codigo
 		JOIN [REGISTROS_EN_FUGA].Compra_Autoparte c ON m.COMPRA_NRO = c.compra_nro
@@ -566,14 +364,14 @@ GO
 		SELECT M.AUTO_NRO_CHASIS, M.AUTO_NRO_MOTOR, M.AUTO_PATENTE, M.AUTO_FECHA_ALTA, M.AUTO_CANT_KMS, M.modelo_codigo, (M.COMPRA_PRECIO * 1.2) AS PRECIO, 
 	    M.tipo_auto_codigo from [GD2C2020].[gd_esquema].[Maestra] M WHERE M.AUTO_NRO_CHASIS IS NOT NULL AND M.FACTURA_NRO IS NULL ORDER BY AUTO_NRO_CHASIS
 	
---MIGRACIÓN FACTURAS
+	--MIGRACIÓN FACTURAS
 	INSERT INTO [REGISTROS_EN_FUGA].Facturas SELECT DISTINCT(FACTURA_NRO), FACTURA_FECHA, (SELECT SUM(ISNULL(CANT_FACTURADA,1)*PRECIO_FACTURADO) AS 
-    PRECIO FROM [GD2C2020].[gd_esquema].[Maestra] WHERE FACTURA_NRO = M.FACTURA_NRO AND PRECIO_FACTURADO IS NOT NULL) AS PRECIO_TOTAL_FACTURADO,
+    PRECIO FROM [GD2C2020].[gd_esquema].[Maestra] MS WHERE FACTURA_NRO = M.FACTURA_NRO AND PRECIO_FACTURADO IS NOT NULL) AS PRECIO_TOTAL_FACTURADO,
     C.cliente_id, SV.sucursal_id, SC.sucursal_id, A.auto_id
         FROM [GD2C2020].[gd_esquema].[Maestra] M 
         INNER JOIN [REGISTROS_EN_FUGA].Clientes c on M.FAC_CLIENTE_DNI = C.cli_DNI AND M.FAC_CLIENTE_NOMBRE = C.cli_nombre
-        LEFT JOIN [REGISTROS_EN_FUGA].Sucursales SV on M.FAC_SUCURSAL_DIRECCION = SV.sucursal_direccion
-        LEFT JOIN [REGISTROS_EN_FUGA].Sucursales SC on M.SUCURSAL_DIRECCION = SC.sucursal_direccion
-        LEFT JOIN [REGISTROS_EN_FUGA].Automoviles A on M.AUTO_PATENTE = A.auto_patente
+        INNER JOIN [REGISTROS_EN_FUGA].Sucursales SV on M.FAC_SUCURSAL_DIRECCION = SV.sucursal_direccion
+        INNER JOIN [REGISTROS_EN_FUGA].Sucursales SC on M.SUCURSAL_DIRECCION = SC.sucursal_direccion
+        INNER JOIN [REGISTROS_EN_FUGA].Automoviles A on M.AUTO_PATENTE = A.auto_patente
         WHERE FACTURA_NRO IS NOT NULL order by FACTURA_NRO
 
