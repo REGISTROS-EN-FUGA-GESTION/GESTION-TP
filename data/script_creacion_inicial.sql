@@ -58,7 +58,7 @@ GO
 CREATE SCHEMA [REGISTROS_EN_FUGA]
 GO
 
---------------------------------------------------------CREACI?N DE TABLAS----------------------------------------------------------
+--------------------------------------------------------CREACION DE TABLAS----------------------------------------------------------
 	--CLIENTES
 		create table [REGISTROS_EN_FUGA].Clientes(
 		cliente_id int primary key identity,
@@ -109,7 +109,7 @@ GO
 		)
 
 
-	--TIPO_TRANSMISI?N
+	--TIPO_TRANSMISION
 		create table [REGISTROS_EN_FUGA].Tipo_transmision(
 		tipo_transmision_codigo decimal(18) primary key not null,
 		tipo_transmision_desc nvarchar(255) not null
@@ -130,8 +130,7 @@ GO
 		modelo_tipo_transmision_fk decimal(18) not null 
 		)
 
-	--AUTOM?VILES
-
+	--AUTOMOVILES
 		create table [REGISTROS_EN_FUGA].Automoviles(
 		auto_id			int primary key identity,
 		auto_nro_chasis nvarchar(50) not null,
@@ -144,8 +143,7 @@ GO
 		auto_tipo_fk    decimal(18)  not null
 		)
 
-	--COMPRA_AUTOM?VIL
-
+	--COMPRA_AUTOMOVIL
 		create table [REGISTROS_EN_FUGA].Compra_automovil(
 		compra_nro		   decimal(18)  primary key,
 		compra_fecha	   datetime2(3) not null,
@@ -169,12 +167,7 @@ GO
 		autoparte_id decimal(18) not null,
 		cantidad     decimal(18) not null,
 		)
-		/* cambio la primary key (autoparte_id,compra_nro) por id autogenerado
-			select * 
-			from gd_esquema.Maestra where (AUTO_PARTE_CODIGO = 5017 OR AUTO_PARTE_CODIGO = 5006)
-			and (compra_nro = 175488  OR compra_nro = 135193) 
-		*/
-	
+					
 	--FACTURAS
 		create table [REGISTROS_EN_FUGA].Facturas(
 		factura_nro			decimal(18)  primary key,
@@ -205,7 +198,7 @@ GO
 		cantidad		  int not null
 		)
 
---------------------------------------------------------DECLARACI?N DE CONSTRAINTS--------------------------------------------------
+--------------------------------------------------------DECLARACION DE CONSTRAINTS--------------------------------------------------
 
 	--MODELO_AUTO
 		ALTER TABLE [REGISTROS_EN_FUGA].Modelo_auto 
@@ -215,7 +208,7 @@ GO
 			ADD CONSTRAINT FK_Tipo_Transmision FOREIGN KEY (modelo_tipo_transmision_fk) REFERENCES [REGISTROS_EN_FUGA].Tipo_transmision(tipo_transmision_codigo)
 
 
-	--AUTOM?VILES
+	--AUTOMOVILES
 
 		ALTER TABLE [REGISTROS_EN_FUGA].Automoviles
 			ADD CONSTRAINT FK_Auto_Modelo FOREIGN KEY (auto_modelo_fk) REFERENCES [REGISTROS_EN_FUGA].Modelo_auto(modelo_codigo)
@@ -224,7 +217,7 @@ GO
 			ADD CONSTRAINT FK_Auto_Tipo FOREIGN KEY (auto_tipo_fk) REFERENCES [REGISTROS_EN_FUGA].Tipo_auto(tipo_auto_codigo)
 
 
-	--COMPRA_AUTOM?VIL
+	--COMPRA_AUTOMOVIL
 
 		ALTER TABLE [REGISTROS_EN_FUGA].Compra_automovil 
 			ADD CONSTRAINT FK_Compra_Auto FOREIGN KEY (compra_auto_fk) REFERENCES [REGISTROS_EN_FUGA].Automoviles(auto_id)
@@ -233,6 +226,7 @@ GO
 			ADD CONSTRAINT FK_Compra_Sucursal FOREIGN KEY (compra_sucursal_fk) REFERENCES [REGISTROS_EN_FUGA].Sucursales(sucursal_id)
 
 	--AUTOPARTES
+
 		ALTER TABLE [REGISTROS_EN_FUGA].Autopartes
 			ADD CONSTRAINT FK_autoparte_modelo FOREIGN KEY (autoparte_modelo_fk) REFERENCES [REGISTROS_EN_FUGA].Modelo_auto(modelo_codigo)
 
@@ -245,6 +239,7 @@ GO
 			ADD CONSTRAINT FK_Compra_Sucursal_cod FOREIGN KEY (compra_sucursal_fk) REFERENCES [REGISTROS_EN_FUGA].Sucursales(sucursal_id)
 													  
 	--AUTOPARTE_POR_COMPRA
+
 		ALTER TABLE [REGISTROS_EN_FUGA].Autoparte_por_compra
 			ADD CONSTRAINT FK_Compra FOREIGN KEY (compra_nro) REFERENCES [REGISTROS_EN_FUGA].Compra_Autoparte(compra_nro)
 
@@ -285,16 +280,16 @@ GO
 
 
 
---------------------------------------------------------MIGRACI?N DE DATOS----------------------------------------------------------
+--------------------------------------------------------MIGRACION DE DATOS----------------------------------------------------------
 
-	--MIGRACI?N FABRICANTES
+	--MIGRACION FABRICANTES
 	INSERT INTO [REGISTROS_EN_FUGA].Fabricantes SELECT distinct(FABRICANTE_NOMBRE) FROM [GD2C2020].[gd_esquema].[Maestra] order by FABRICANTE_NOMBRE
 	
-	--MIGRACI?N SUCURSALES
+	--MIGRACION SUCURSALES
 	INSERT INTO [REGISTROS_EN_FUGA].Sucursales SELECT distinct(SUCURSAL_DIRECCION), SUCURSAL_MAIL, SUCURSAL_TELEFONO, SUCURSAL_CIUDAD 
 			FROM [GD2C2020].[gd_esquema].[Maestra] WHERE SUCURSAL_DIRECCION IS NOT NULL order by SUCURSAL_DIRECCION
 
-	--MIGRACI?N CLIENTES
+	--MIGRACION CLIENTES
 		  
 	INSERT INTO [REGISTROS_EN_FUGA].Clientes (cli_DNI, cli_nombre, cli_apellido, cli_direccion, cli_fecha_nac, cli_mail) 
 	SELECT DISTINCT DNI , NOMBRE, APELLIDO, DIRECCION, FEC_NAC, MAIL FROM (SELECT CLIENTE_DNI AS DNI, CLIENTE_NOMBRE AS NOMBRE, CLIENTE_APELLIDO AS APELLIDO, CLIENTE_DIRECCION AS DIRECCION,  CLIENTE_FECHA_NAC AS FEC_NAC, CLIENTE_MAIL  AS MAIL
@@ -304,17 +299,17 @@ GO
 			FROM [GD2C2020].[gd_esquema].[Maestra] M 
 			WHERE FAC_CLIENTE_DNI IS NOT NULL) D
 	
-	--MIGRACIO?N TIPO_CAJA
+	--MIGRACION TIPO_CAJA
 	INSERT INTO [REGISTROS_EN_FUGA].Tipo_caja 
 		select DISTINCT(TIPO_CAJA_CODIGO), TIPO_CAJA_DESC from gd_esquema.Maestra WHERE TIPO_CAJA_CODIGO is not null order by TIPO_CAJA_CODIGO
 	
 
-	--MIGRACIO?N TIPO_TRANSMISION
+	--MIGRACION TIPO_TRANSMISION
 	INSERT INTO [REGISTROS_EN_FUGA].Tipo_transmision
 		select DISTINCT(TIPO_TRANSMISION_CODIGO), TIPO_TRANSMISION_DESC from gd_esquema.Maestra WHERE TIPO_TRANSMISION_CODIGO is not null order by TIPO_TRANSMISION_CODIGO
    
 
-	--MIGRACIO?N MODELO_AUTO
+	--MIGRACION MODELO_AUTO
 	INSERT INTO [REGISTROS_EN_FUGA].Modelo_auto
 		select DISTINCT(MODELO_CODIGO),MODELO_NOMBRE,MODELO_POTENCIA,c.TIPO_CAJA_CODIGO,t.TIPO_TRANSMISION_CODIGO 
 		from gd_esquema.Maestra m
@@ -322,7 +317,7 @@ GO
 		JOIN [REGISTROS_EN_FUGA].Tipo_transmision t ON m.TIPO_TRANSMISION_CODIGO = t.tipo_transmision_codigo
 		order by MODELO_CODIGO
 
-	--MIGRACI�N AUTOPARTES
+	--MIGRACION AUTOPARTES
 	INSERT INTO [REGISTROS_EN_FUGA].Autopartes	
 		SELECT DISTINCT(AUTO_PARTE_CODIGO), AUTO_PARTE_DESCRIPCION, max(isNull(PRECIO_FACTURADO,0)) precio_facturado, max(isNull(COMPRA_PRECIO,0)) compra_precio, mo.modelo_codigo, f.fabricante_id
 		FROM [GD2C2020].[gd_esquema].[Maestra] m
@@ -360,12 +355,12 @@ GO
 		JOIN [REGISTROS_EN_FUGA].Compra_Autoparte c ON m.COMPRA_NRO = c.compra_nro
 		where c.compra_nro IS NOT NULL and AUTO_PARTE_CODIGO IS NOT NULL
 										 
-	--MIGRACIÓN AUTOMÓVIL
+	--MIGRACION AUTOMOVIL
 	INSERT INTO [REGISTROS_EN_FUGA].Automoviles
 		SELECT M.AUTO_NRO_CHASIS, M.AUTO_NRO_MOTOR, M.AUTO_PATENTE, M.AUTO_FECHA_ALTA, M.AUTO_CANT_KMS, M.modelo_codigo, (M.COMPRA_PRECIO * 1.2) AS PRECIO, 
 	    M.tipo_auto_codigo from [GD2C2020].[gd_esquema].[Maestra] M WHERE M.AUTO_NRO_CHASIS IS NOT NULL AND M.FACTURA_NRO IS NULL ORDER BY AUTO_NRO_CHASIS
 	
-	--MIGRACIÓN FACTURAS
+	--MIGRACION FACTURAS
 	INSERT INTO [REGISTROS_EN_FUGA].Facturas SELECT DISTINCT(FACTURA_NRO), FACTURA_FECHA, (SELECT SUM(ISNULL(CANT_FACTURADA,1)*PRECIO_FACTURADO) AS 
     PRECIO FROM [GD2C2020].[gd_esquema].[Maestra] MS WHERE FACTURA_NRO = M.FACTURA_NRO AND PRECIO_FACTURADO IS NOT NULL) AS PRECIO_TOTAL_FACTURADO,
     C.cliente_id, SV.sucursal_id, SC.sucursal_id, A.auto_id
@@ -377,18 +372,18 @@ GO
         WHERE FACTURA_NRO IS NOT NULL order by FACTURA_NRO
 
 
-	--MIGRACIÓN COMPRA_AUTOMÓVIL
+	--MIGRACION COMPRA_AUTOMOVIL
 	INSERT INTO [REGISTROS_EN_FUGA].Compra_automovil SELECT M.COMPRA_NRO, M.COMPRA_FECHA, A.auto_id, S.sucursal_id
 		from gd_esquema.Maestra M 
 		INNER JOIN [REGISTROS_EN_FUGA].Automoviles A on M.AUTO_PATENTE = A.auto_patente
 		INNER JOIN [REGISTROS_EN_FUGA].Sucursales S on M.FAC_SUCURSAL_DIRECCION = S.sucursal_direccion
 		where M.COMPRA_NRO IS NOT NULL and M.FACTURA_NRO IS NOT NULL
 
-	--MIGRACIÓN AUTOPARTE_POR_VENTA
+	--MIGRACION AUTOPARTE_POR_VENTA
 	INSERT INTO [REGISTROS_EN_FUGA].Autoparte_por_venta select M.AUTO_PARTE_CODIGO, M.FACTURA_NRO, M.CANT_FACTURADA
 		from gd_esquema.Maestra M WHERE FACTURA_NRO IS NOT NULL AND SUCURSAL_DIRECCION IS NULL
 		
-	--MIGRACIÓN STOCK
+	--MIGRACION STOCK
 	INSERT INTO [REGISTROS_EN_FUGA].Stock SELECT C.compra_auto_fk, NULL, A.auto_precio * 1.2 , C.compra_sucursal_fk, 1
 		from [REGISTROS_EN_FUGA].Compra_automovil C
 		LEFT JOIN [REGISTROS_EN_FUGA].Facturas F on C.compra_auto_fk = F.fac_auto_fk and F.fac_auto_fk IS NULL
@@ -399,6 +394,6 @@ GO
 		,((SELECT SUM(ISNULL(AC1.cantidad,0)) FROM [REGISTROS_EN_FUGA].Autoparte_por_compra AC1 where AC1.autoparte_id = A.autoparte_codigo) -
 		(SELECT SUM(ISNULL(AV1.cantidad,0)) FROM [REGISTROS_EN_FUGA].Autoparte_por_venta AV1 where AV1.autoparte_id = A.autoparte_codigo)) as CANTIDAD_TOTAL
 		from [REGISTROS_EN_FUGA].Autopartes A
-		LEFT JOIN [REGISTROS_EN_FUGA].Autoparte_por_compra AC on AC.autoparte_id = autoparte_codigo
-		LEFT JOIN [REGISTROS_EN_FUGA].Autoparte_por_venta AV on AV.autoparte_id = autoparte_codigo
+		INNER JOIN [REGISTROS_EN_FUGA].Autoparte_por_compra AC on AC.autoparte_id = autoparte_codigo
+		INNER JOIN [REGISTROS_EN_FUGA].Autoparte_por_venta AV on AV.autoparte_id = autoparte_codigo
 		GROUP BY A.autoparte_codigo, A.autoparte_precio_compra 
