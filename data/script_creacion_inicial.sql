@@ -341,12 +341,40 @@ GO
 		JOIN [REGISTROS_EN_FUGA].Tipo_transmision t ON m.TIPO_TRANSMISION_CODIGO = t.tipo_transmision_codigo
 		order by MODELO_CODIGO
 
+	--MIGRACION MOTORES
+	INSERT INTO [REGISTROS_EN_FUGA].Motores
+		select DISTINCT(AUTO_NRO_MOTOR), TIPO_MOTOR_CODIGO from gd_esquema.Maestra WHERE AUTO_NRO_MOTOR is not null order by AUTO_NRO_MOTOR
+	
+	--MIGRACION TIPO_AUTO
+	INSERT INTO [REGISTROS_EN_FUGA].Tipo_auto
+		select DISTINCT(TIPO_AUTO_CODIGO), TIPO_AUTO_DESC from gd_esquema.Maestra WHERE TIPO_AUTO_CODIGO is not null order by TIPO_AUTO_CODIGO
+
+	--MIGRACION COMPRA_AUTOPARTE
+	INSERT INTO [REGISTROS_EN_FUGA].Compra_Autoparte	--falta cargar autopartes para que funcione
+		select DISTINCT(COMPRA_NRO),a.autoparte_codigo,'' categoria,s.sucursal_id,COMPRA_FECHA,68 precio_total	---calcular precio total
+		from gd_esquema.Maestra m
+		JOIN [REGISTROS_EN_FUGA].Autopartes a ON m.AUTO_PARTE_CODIGO = a.autoparte_codigo
+		JOIN [REGISTROS_EN_FUGA].Sucursales s ON m.SUCURSAL_DIRECCION = s.sucursal_direccion
+		order by a.autoparte_codigo
+
+	--MIGRACION AUTOPARTE_POR_COMPRA
+	INSERT INTO [REGISTROS_EN_FUGA].Autoparte_por_compra	--falta cargar autopartes para que funcione
+		select DISTINCT(c.compra_nro),a.autoparte_codigo,COMPRA_CANT from gd_esquema.Maestra m
+		JOIN [REGISTROS_EN_FUGA].Autopartes a ON m.AUTO_PARTE_CODIGO = a.autoparte_codigo
+		JOIN [REGISTROS_EN_FUGA].Compra_Autoparte c ON m.COMPRA_NRO = c.compra_nro
+		where c.compra_nro IS NOT NULL and AUTO_PARTE_CODIGO IS NOT NULL
+
+	--MIGRACIÓN AUTOMÓVIL
+	INSERT INTO [REGISTROS_EN_FUGA].Automoviles
+		SELECT M.AUTO_NRO_CHASIS, M.AUTO_NRO_MOTOR, M.AUTO_PATENTE, M.AUTO_FECHA_ALTA, M.AUTO_CANT_KMS, M.modelo_codigo, (M.COMPRA_PRECIO * 1.2) AS PRECIO, 
+	    M.tipo_auto_codigo from [GD2C2020].[gd_esquema].[Maestra] M WHERE M.AUTO_NRO_CHASIS IS NOT NULL AND M.FACTURA_NRO IS NULL ORDER BY AUTO_NRO_CHASIS
+	
 --MIGRACIÓN FACTURAS
 	INSERT INTO [REGISTROS_EN_FUGA].Facturas SELECT DISTINCT(FACTURA_NRO), FACTURA_FECHA, (SELECT SUM(ISNULL(CANT_FACTURADA,1)*PRECIO_FACTURADO) AS 
     PRECIO FROM [GD2C2020].[gd_esquema].[Maestra] WHERE FACTURA_NRO = M.FACTURA_NRO AND PRECIO_FACTURADO IS NOT NULL) AS PRECIO_TOTAL_FACTURADO,
     C.cliente_id, SV.sucursal_id, SC.sucursal_id, A.auto_id
         FROM [GD2C2020].[gd_esquema].[Maestra] M 
-        LEFT JOIN [REGISTROS_EN_FUGA].Clientes c on M.FAC_CLIENTE_DNI = C.cli_DNI AND M.FAC_CLIENTE_NOMBRE = C.cli_nombre
+        INNER JOIN [REGISTROS_EN_FUGA].Clientes c on M.FAC_CLIENTE_DNI = C.cli_DNI AND M.FAC_CLIENTE_NOMBRE = C.cli_nombre
         LEFT JOIN [REGISTROS_EN_FUGA].Sucursales SV on M.FAC_SUCURSAL_DIRECCION = SV.sucursal_direccion
         LEFT JOIN [REGISTROS_EN_FUGA].Sucursales SC on M.SUCURSAL_DIRECCION = SC.sucursal_direccion
         LEFT JOIN [REGISTROS_EN_FUGA].Automoviles A on M.AUTO_PATENTE = A.auto_patente
