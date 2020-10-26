@@ -324,7 +324,7 @@ GO
 
 	--MIGRACI�N AUTOPARTES
 	INSERT INTO [REGISTROS_EN_FUGA].Autopartes	
-		SELECT DISTINCT(AUTO_PARTE_CODIGO), AUTO_PARTE_DESCRIPCION, max(PRECIO_FACTURADO) precio_facturado, max(COMPRA_PRECIO) compra_precio, mo.modelo_codigo, f.fabricante_id
+		SELECT DISTINCT(AUTO_PARTE_CODIGO), AUTO_PARTE_DESCRIPCION, max(isNull(PRECIO_FACTURADO,0)) precio_facturado, max(isNull(COMPRA_PRECIO,0)) compra_precio, mo.modelo_codigo, f.fabricante_id
 		FROM [GD2C2020].[gd_esquema].[Maestra] m
 		JOIN [REGISTROS_EN_FUGA].Modelo_auto mo ON m.MODELO_CODIGO = mo.modelo_codigo
 		JOIN [REGISTROS_EN_FUGA].Fabricantes f ON m.FABRICANTE_NOMBRE = f.fabricante_nombre
@@ -345,7 +345,7 @@ GO
 
 	--MIGRACION COMPRA_AUTOPARTE
     INSERT INTO [REGISTROS_EN_FUGA].Compra_Autoparte
-        select DISTINCT(COMPRA_NRO),'ninguna' categoria,s.sucursal_id,COMPRA_FECHA, (select sum(COMPRA_CANT*compra_precio) precio_total from gd_esquema.Maestra 
+        select DISTINCT(COMPRA_NRO),'ninguna' categoria,s.sucursal_id,COMPRA_FECHA, (select sum(isNull(COMPRA_CANT*compra_precio, 0)) precio_total from gd_esquema.Maestra 
 		where COMPRA_NRO = m.COMPRA_NRO) as precio_total
         from gd_esquema.Maestra m
         JOIN [REGISTROS_EN_FUGA].Sucursales s ON m.SUCURSAL_DIRECCION = s.sucursal_direccion
