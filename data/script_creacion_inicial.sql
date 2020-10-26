@@ -3,6 +3,18 @@ GO
 
 IF EXISTS ( SELECT 1 FROM information_schema.schemata WHERE   schema_name = 'REGISTROS_EN_FUGA' )
 	BEGIN
+		IF object_id('REGISTROS_EN_FUGA.Compra_automovil') is not null
+			drop table [REGISTROS_EN_FUGA].Compra_automovil
+		
+		IF object_id('REGISTROS_EN_FUGA.Stock') is not null
+			drop table [REGISTROS_EN_FUGA].Stock
+
+		IF object_id('REGISTROS_EN_FUGA.Autoparte_por_venta') is not null
+			drop table [REGISTROS_EN_FUGA].Autoparte_por_venta
+
+		IF object_id('REGISTROS_EN_FUGA.Facturas') is not null
+			drop table [REGISTROS_EN_FUGA].Facturas
+
 		IF object_id('REGISTROS_EN_FUGA.Automoviles') is not null
 			drop table [REGISTROS_EN_FUGA].Automoviles
 
@@ -12,17 +24,8 @@ IF EXISTS ( SELECT 1 FROM information_schema.schemata WHERE   schema_name = 'REG
 		IF object_id('REGISTROS_EN_FUGA.Compra_Autoparte') is not null
 			drop table [REGISTROS_EN_FUGA].Compra_Autoparte
 
-		IF object_id('REGISTROS_EN_FUGA.Compra_automovil') is not null
-			drop table [REGISTROS_EN_FUGA].Compra_automovil
-
-		IF object_id('REGISTROS_EN_FUGA.Autoparte_por_venta') is not null
-			drop table [REGISTROS_EN_FUGA].Autoparte_por_venta
-
-		IF object_id('REGISTROS_EN_FUGA.Facturas') is not null
-			drop table [REGISTROS_EN_FUGA].Facturas
-
-		IF object_id('REGISTROS_EN_FUGA.Stock') is not null
-			drop table [REGISTROS_EN_FUGA].Stock
+		IF object_id('REGISTROS_EN_FUGA.Autopartes') is not null
+			drop table [REGISTROS_EN_FUGA].Autopartes
 
 		IF object_id('REGISTROS_EN_FUGA.Modelo_auto') is not null
 			drop table [REGISTROS_EN_FUGA].Modelo_auto
@@ -32,9 +35,6 @@ IF EXISTS ( SELECT 1 FROM information_schema.schemata WHERE   schema_name = 'REG
 
 		IF object_id('REGISTROS_EN_FUGA.Sucursales') is not null
 			drop table [REGISTROS_EN_FUGA].Sucursales
-
-		IF object_id('REGISTROS_EN_FUGA.Autopartes') is not null
-			drop table [REGISTROS_EN_FUGA].Autopartes
 
 		IF object_id('REGISTROS_EN_FUGA.Fabricantes') is not null
 			drop table [REGISTROS_EN_FUGA].Fabricantes
@@ -188,20 +188,21 @@ GO
 
 	--AUTOPARTE_POR_VENTA
 		create table [REGISTROS_EN_FUGA].Autoparte_por_venta(
+		auto_venta_id int primary key identity,
 		autoparte_id decimal(18) not null,
 		factura_id	 decimal(18) not null,
-		cantidad     int         not null,
-		primary key (autoparte_id,factura_id) 
+		cantidad     int         not null
 		)
 
 
 	--STOCK
 		create table [REGISTROS_EN_FUGA].Stock(
 		item_id		      decimal(18) primary key identity,
-		item_auto_fk      int         not null,
-		item_autoparte_fk decimal(18) not null,
+		item_auto_fk      int,
+		item_autoparte_fk decimal(18),
 		item_precio_venta decimal(18,2) not null,
-		item_sucursal_fk  int		  not null
+		item_sucursal_fk  int,
+		cantidad		  int not null
 		)
 
 --------------------------------------------------------DECLARACI?N DE CONSTRAINTS--------------------------------------------------
@@ -369,10 +370,10 @@ GO
     PRECIO FROM [GD2C2020].[gd_esquema].[Maestra] MS WHERE FACTURA_NRO = M.FACTURA_NRO AND PRECIO_FACTURADO IS NOT NULL) AS PRECIO_TOTAL_FACTURADO,
     C.cliente_id, SV.sucursal_id, SC.sucursal_id, A.auto_id
         FROM [GD2C2020].[gd_esquema].[Maestra] M 
-        INNER JOIN [REGISTROS_EN_FUGA].Clientes c on M.FAC_CLIENTE_DNI = C.cli_DNI AND M.FAC_CLIENTE_NOMBRE = C.cli_nombre
-        INNER JOIN [REGISTROS_EN_FUGA].Sucursales SV on M.FAC_SUCURSAL_DIRECCION = SV.sucursal_direccion
-        INNER JOIN [REGISTROS_EN_FUGA].Sucursales SC on M.SUCURSAL_DIRECCION = SC.sucursal_direccion
-        INNER JOIN [REGISTROS_EN_FUGA].Automoviles A on M.AUTO_PATENTE = A.auto_patente
+        LEFT JOIN [REGISTROS_EN_FUGA].Clientes c on M.FAC_CLIENTE_DNI = C.cli_DNI AND M.FAC_CLIENTE_NOMBRE = C.cli_nombre
+        LEFT JOIN [REGISTROS_EN_FUGA].Sucursales SV on M.FAC_SUCURSAL_DIRECCION = SV.sucursal_direccion
+        LEFT JOIN [REGISTROS_EN_FUGA].Sucursales SC on M.SUCURSAL_DIRECCION = SC.sucursal_direccion
+        LEFT JOIN [REGISTROS_EN_FUGA].Automoviles A on M.AUTO_PATENTE = A.auto_patente
         WHERE FACTURA_NRO IS NOT NULL order by FACTURA_NRO
 
 
