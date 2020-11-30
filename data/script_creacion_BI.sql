@@ -356,3 +356,15 @@ SET IDENTITY_INSERT [REGISTROS_EN_FUGA].BI_Automovil ON INSERT INTO [REGISTROS_E
 	from [REGISTROS_EN_FUGA].Automoviles
 	JOIN [REGISTROS_EN_FUGA].Facturas on fac_auto_fk = auto_id
 	SET IDENTITY_INSERT [REGISTROS_EN_FUGA].BI_Automovil OFF
+
+-- FACT TABLE VENTAAUTOPARTE
+SELECT tiempo_id, c.cliente_id, s.sucursal_id, av.autoparte_id, fa.fabricante_id, a.autoparte_precio_venta, av.cantidad
+from REGISTROS_EN_FUGA.Facturas f inner join REGISTROS_EN_FUGA.BI_Tiempo t on
+	year(f.fac_fecha) = t.anio and month(f.fac_fecha) = t.mes
+	inner join REGISTROS_EN_FUGA.BI_Cliente c on c.cliente_id = f.fac_cliente_fk 
+	inner join REGISTROS_EN_FUGA.BI_Sucursal s on s.sucursal_id = f.fac_sucursal_fk
+	inner join REGISTROS_EN_FUGA.Autoparte_por_venta av on av.factura_id = f.factura_nro
+	inner join REGISTROS_EN_FUGA.BI_Autoparte a on a.autoparte_id = av.autoparte_id
+	inner join REGISTROS_EN_FUGA.Autopartes ar on ar.autoparte_codigo = a.autoparte_id
+	inner join REGISTROS_EN_FUGA.BI_Fabricante fa on fa.fabricante_id = ar.autoparte_fabricante_fk 
+	where f.fac_auto_fk is NULL order by tiempo_id
