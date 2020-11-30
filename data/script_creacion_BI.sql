@@ -1,3 +1,4 @@
+USE GD2C2020
 IF object_id('REGISTROS_EN_FUGA.BI_Ventas_Autopartes') is not null
 	drop table [REGISTROS_EN_FUGA].BI_Ventas_Autopartes
 
@@ -350,7 +351,8 @@ SET IDENTITY_INSERT [REGISTROS_EN_FUGA].BI_Autoparte ON INSERT INTO [REGISTROS_E
 	SET IDENTITY_INSERT [REGISTROS_EN_FUGA].BI_Autoparte OFF
 
 --BI_Automovil
-SET IDENTITY_INSERT [REGISTROS_EN_FUGA].BI_Automovil ON INSERT INTO [REGISTROS_EN_FUGA].BI_Automovil (automovil_id, automovil_nro_chasis, automovil_nro_motor, automovil_nro_patente, automovil_fecha_alta, automovil_kms)
-	SELECT auto_id, auto_nro_chasis, auto_nro_motor, auto_patente, auto_fecha_alta, auto_cant_kms
+SET IDENTITY_INSERT [REGISTROS_EN_FUGA].BI_Automovil ON INSERT INTO [REGISTROS_EN_FUGA].BI_Automovil (automovil_id, automovil_nro_chasis, automovil_nro_motor, automovil_nro_patente, automovil_fecha_alta, automovil_kms, automovil_precio_compra, automovil_precio_venta)
+	SELECT auto_id, auto_nro_chasis, auto_nro_motor, auto_patente, auto_fecha_alta, auto_cant_kms, auto_precio, fac_precio_total_facturado
 	from [REGISTROS_EN_FUGA].Automoviles
+	JOIN [REGISTROS_EN_FUGA].Facturas on fac_auto_fk = auto_id
 	SET IDENTITY_INSERT [REGISTROS_EN_FUGA].BI_Automovil OFF
