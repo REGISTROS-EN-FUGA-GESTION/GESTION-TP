@@ -155,7 +155,6 @@ create table [REGISTROS_EN_FUGA].BI_Ventas_Automovil(
 
 create table [REGISTROS_EN_FUGA].BI_Compras_Autopartes(
 	tiempo_id_fk int not null,
-	cliente_id_fk int not null,
 	sucursal_id_fk int not null,
 	autoparte_id_fk int not null,
 	fabricante_id_fk int not null,
@@ -165,7 +164,6 @@ create table [REGISTROS_EN_FUGA].BI_Compras_Autopartes(
 
 create table [REGISTROS_EN_FUGA].BI_Compras_Automovil(
 	tiempo_id_fk int not null,
-	cliente_id_fk int not null,
 	sucursal_id_fk int not null,
 	automovil_id_fk int not null,
 	potencia_id_fk int not null,
@@ -236,9 +234,6 @@ ALTER TABLE [REGISTROS_EN_FUGA].BI_Compras_Autopartes
 	ADD CONSTRAINT FK_compra_autoparte_Tiempo FOREIGN KEY (tiempo_id_fk) REFERENCES [REGISTROS_EN_FUGA].BI_Tiempo(tiempo_id)
 
 ALTER TABLE [REGISTROS_EN_FUGA].BI_Compras_Autopartes
-	ADD CONSTRAINT FK_compra_autoparte_Cliente FOREIGN KEY (cliente_id_fk) REFERENCES [REGISTROS_EN_FUGA].BI_Cliente(cliente_id)
-
-ALTER TABLE [REGISTROS_EN_FUGA].BI_Compras_Autopartes
 	ADD CONSTRAINT FK_compra_autoparte_Sucursal FOREIGN KEY (sucursal_id_fk) REFERENCES [REGISTROS_EN_FUGA].BI_Sucursal(sucursal_id)
 
 ALTER TABLE [REGISTROS_EN_FUGA].BI_Compras_Autopartes
@@ -250,9 +245,6 @@ ALTER TABLE [REGISTROS_EN_FUGA].BI_Compras_Autopartes
 ------Contraints Compra_automovil
 ALTER TABLE [REGISTROS_EN_FUGA].BI_Compras_Automovil
 	ADD CONSTRAINT FK_compra_automovil_tiempo_id FOREIGN KEY (tiempo_id_fk) REFERENCES [REGISTROS_EN_FUGA].BI_Tiempo(tiempo_id)
-
-ALTER TABLE [REGISTROS_EN_FUGA].BI_Compras_Automovil
-	ADD CONSTRAINT FK_compra_automovil_cliente_id FOREIGN KEY (cliente_id_fk) REFERENCES [REGISTROS_EN_FUGA].BI_Cliente(cliente_id)
 
 ALTER TABLE [REGISTROS_EN_FUGA].BI_Compras_Automovil
 	ADD CONSTRAINT FK_compra_automovil_sucursal_id FOREIGN KEY (sucursal_id_fk) REFERENCES [REGISTROS_EN_FUGA].BI_Sucursal(sucursal_id)
