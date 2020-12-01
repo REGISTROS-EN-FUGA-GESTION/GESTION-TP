@@ -105,6 +105,7 @@ create table [REGISTROS_EN_FUGA].BI_Tipo_transmision(
 
 create table [REGISTROS_EN_FUGA].BI_Potencia(
 	potencia_id int primary key identity,
+	potencia_codigo decimal(18,0) not null,
 	potencia_rango nvarchar(40) not null
 )
 
@@ -324,7 +325,7 @@ SET IDENTITY_INSERT [REGISTROS_EN_FUGA].BI_Tipo_transmision ON INSERT INTO [REGI
 
 --BI_Potencia
 INSERT INTO [REGISTROS_EN_FUGA].BI_Potencia 
-	SELECT DISTINCT CASE 
+	SELECT modelo_potencia,  CASE 
 	WHEN modelo_potencia BETWEEN 50 AND 150 THEN '50 - 150cv'
 	WHEN modelo_potencia BETWEEN 151 AND 300 THEN '151 - 300cv'
 	WHEN modelo_potencia > 300 THEN '> 300cv' END
@@ -370,8 +371,17 @@ from REGISTROS_EN_FUGA.Compra_Autoparte ca inner join REGISTROS_EN_FUGA.BI_Tiemp
 
 --VENTAS AUTOMOVIL 
 INSERT [REGISTROS_EN_FUGA].BI_Ventas_Automovil
-SELECT tiempo_id, c.cliente_id, s.sucursal_id, a.automovil_id, p.potencia_id, tt.tipo_transmision_id, tm.motor_nro,
-tc.tipo_caja_id, ta.tipo_auto_id, m.modelo_id, f.fac_precio_total_facturado, 1
+SELECT tiempo_id, 
+c.cliente_id, 
+s.sucursal_id, 
+a.automovil_id, 
+p.potencia_id, 
+tt.tipo_transmision_id, 
+tm.motor_nro,
+tc.tipo_caja_id, 
+ta.tipo_auto_id, 
+m.modelo_id, 
+f.fac_precio_total_facturado, 1
 from REGISTROS_EN_FUGA.Facturas f 
 	inner join REGISTROS_EN_FUGA.BI_Tiempo t on year(f.fac_fecha) = t.anio and month(f.fac_fecha) = t.mes
 	inner join REGISTROS_EN_FUGA.BI_Cliente c on  c.cliente_id = f.fac_cliente_fk 
@@ -380,12 +390,33 @@ from REGISTROS_EN_FUGA.Facturas f
 	inner join REGISTROS_EN_FUGA.Automoviles ar on ar.auto_id = a.automovil_id
 	inner join REGISTROS_EN_FUGA.Modelo_auto mr on mr.modelo_codigo = ar.auto_modelo_fk
 	inner join REGISTROS_EN_FUGA.BI_Modelo m on m.modelo_id = ar.auto_modelo_fk
-	inner join REGISTROS_EN_FUGA.BI_Potencia p on p.potencia_id = mr.modelo_potencia
+	inner join REGISTROS_EN_FUGA.BI_Potencia p on p.potencia_codigo = mr.modelo_potencia
 	inner join REGISTROS_EN_FUGA.BI_Tipo_transmision tt on tt.tipo_transmision_id = mr.modelo_tipo_transmision_fk
 	inner join REGISTROS_EN_FUGA.BI_Tipo_motor tm on tm.motor_nro = ar.auto_nro_motor
 	inner join REGISTROS_EN_FUGA.BI_Tipo_caja tc on tc.tipo_caja_id = mr.modelo_tipo_caja_fk
 	inner join REGISTROS_EN_FUGA.BI_Tipo_automovil ta on ta.tipo_auto_id = ar.auto_tipo_fk
 	where f.fac_auto_fk is NOT NULL order by tiempo_id
 
-	select * from  REGISTROS_EN_FUGA.BI_Tipo_motor tc inner join REGISTROS_EN_FUGA.Automoviles ar  
-	on tc.motor_nro = ar.auto_nro_motor
+
+CREATE VIEW automoviles AS
+	BEGIN 
+		SELECT sum(V.unidades) AS Cant_Vendidos, sum(C.unidades) AS Cant_Comprados, AVG(V.precio_venta) Precio_venta_promedio, AVG(C.precio_compra) Precio_compra_promedio,
+		((SUM(V.unidades)*(V.precio_venta)) - (SUM(C.unidades)*(C.precio_compra))) GANANCIA 
+		FROM REGISTROS_EN_FUGA.BI_Ventas_Automovil V
+		JOIN REGISTROS_EN_FUGA.BI_Compras_Automovil C on C.tiempo_id_fk+C.sucursal_id_fk=V.tiempo_id_fk+V.sucursal_id_fk
+		group by V.tiempo_id_fk, C.tiempo_id_fk, V.sucursal_id_fk, C.sucursal_id_fk
+	END
+GO
+
+CREATE VIEW autopartes AS
+	BEGIN 
+		SELECT AVG(V.precio_venta) AS Precio_Prom_Vendido,AVG(C.precio_compra) AS Precio_Prom_Comprado,
+		 sum(C.unidades) AS Cant_Comprados, AVG(V.precio_venta) Precio_venta_promedio, AVG(C.precio_compra) Precio_compra_promedio,
+		(SELECT ((SUM(Ven.unidades)*(Ven.precio_venta)) - (SUM(Com.unidades)*(Com.precio_compra))) 
+				FROM REGISTROS_EN_FUGA.BI_Ventas_Autopartes Ven JOIN REGISTROS_EN_FUGA.BI_Compras_Autopartes Com on Ven.autoparte_id_fk = Com.autoparte_id_fk where Com.autoparte_id_fk = V.autoparte_id_fk 
+				group by Ven.sucursal_id_fk, Com.sucursal_id_fk, Ven.tiempo_id_fk, Com.tiempo_id_fk) GANANCIA 
+		FROM REGISTROS_EN_FUGA.BI_Ventas_Autopartes V
+		JOIN REGISTROS_EN_FUGA.BI_Compras_Autopartes C on C.autoparte_id_fk=V.autoparte_id_fk
+		group by V.autoparte_id_fk, C.autoparte_id_fk
+	END
+GO
