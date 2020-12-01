@@ -404,7 +404,7 @@ CREATE VIEW automoviles AS
 		((SUM(V.unidades)*(V.precio_venta)) - (SUM(C.unidades)*(C.precio_compra))) GANANCIA 
 		FROM REGISTROS_EN_FUGA.BI_Ventas_Automovil V
 		JOIN REGISTROS_EN_FUGA.BI_Compras_Automovil C on C.tiempo_id_fk+C.sucursal_id_fk=V.tiempo_id_fk+V.sucursal_id_fk
-		group by V.tiempo_id_fk, C.tiempo_id_fk, V.sucursal_id_fk, C.sucursal_id_fk
+		group by V.tiempo_id_fk, C.tiempo_id_fk, V.sucursal_id_fk, C.sucursal_id_fk, C.precio_compra, V.precio_venta
 	END
 GO
 
@@ -414,9 +414,9 @@ CREATE VIEW autopartes AS
 		 sum(C.unidades) AS Cant_Comprados, AVG(V.precio_venta) Precio_venta_promedio, AVG(C.precio_compra) Precio_compra_promedio,
 		(SELECT ((SUM(Ven.unidades)*(Ven.precio_venta)) - (SUM(Com.unidades)*(Com.precio_compra))) 
 				FROM REGISTROS_EN_FUGA.BI_Ventas_Autopartes Ven JOIN REGISTROS_EN_FUGA.BI_Compras_Autopartes Com on Ven.autoparte_id_fk = Com.autoparte_id_fk where Com.autoparte_id_fk = V.autoparte_id_fk 
-				group by Ven.sucursal_id_fk, Com.sucursal_id_fk, Ven.tiempo_id_fk, Com.tiempo_id_fk) GANANCIA 
+				group by Ven.sucursal_id_fk, Com.sucursal_id_fk, Ven.tiempo_id_fk, Com.tiempo_id_fk, Com.precio_compra, Ven.precio_venta) GANANCIA 
 		FROM REGISTROS_EN_FUGA.BI_Ventas_Autopartes V
 		JOIN REGISTROS_EN_FUGA.BI_Compras_Autopartes C on C.autoparte_id_fk=V.autoparte_id_fk
-		group by V.autoparte_id_fk, C.autoparte_id_fk
+		group by V.autoparte_id_fk, C.autoparte_id_fk, V.precio_venta, C.precio_compra
 	END
 GO
