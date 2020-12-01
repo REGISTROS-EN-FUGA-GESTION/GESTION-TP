@@ -365,7 +365,10 @@ from REGISTROS_EN_FUGA.Facturas f inner join REGISTROS_EN_FUGA.BI_Tiempo t on
 
 -- FACT TABLE COMPRA AUTOPARTE
 INSERT [REGISTROS_EN_FUGA].BI_Compras_Autopartes
-SELECT tiempo_id,  s.sucursal_id  from REGISTROS_EN_FUGA.Compra_Autoparte ca inner join REGISTROS_EN_FUGA.BI_Tiempo t on  
+SELECT tiempo_id,  s.sucursal_id, a.autoparte_id  
+from REGISTROS_EN_FUGA.Compra_Autoparte ca inner join REGISTROS_EN_FUGA.BI_Tiempo t on  
 	year(ca.compra_fecha) = t.anio and month(ca.compra_fecha) = t.mes
-	inner join [REGISTROS_EN_FUGA].BI_Sucursal s on s.sucursal_id = ca.compra_sucursal_fk 
+	inner join [REGISTROS_EN_FUGA].BI_Sucursal s on s.sucursal_id = ca.compra_sucursal_fk
+	inner join REGISTROS_EN_FUGA.Autoparte_por_compra ac on ac.compra_nro = ca.compra_nro
+	inner join REGISTROS_EN_FUGA.BI_Autoparte a on a.autoparte_id = ac.autoparte_id
 	
