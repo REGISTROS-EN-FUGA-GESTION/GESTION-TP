@@ -94,7 +94,7 @@ create table [REGISTROS_EN_FUGA].BI_Tipo_caja(
 )
 
 create table [REGISTROS_EN_FUGA].BI_Tipo_motor(
-	tipo_motor_id nvarchar(50) primary key,
+	motor_nro nvarchar(50) primary key,
 	tipo_motor_codigo decimal(18,0) not null
 )
 
@@ -148,7 +148,6 @@ create table [REGISTROS_EN_FUGA].BI_Ventas_Automovil(
 	tipo_caja_id_fk int not null,
 	tipo_automovil_id_fk int not null,
 	modelo_id_fk int not null,
-	fabricante_id_fk int not null,
 	precio_venta decimal(18,2) not null,
 	unidades	decimal(18,0) not null
 )
@@ -172,7 +171,6 @@ create table [REGISTROS_EN_FUGA].BI_Compras_Automovil(
 	tipo_caja_id_fk int not null,
 	tipo_automovil_id_fk int not null,
 	modelo_id_fk int not null,
-	fabricante_id_fk int not null,
 	precio_compra decimal(18,2) not null,
 	unidades	decimal(18,0) not null
 )
@@ -215,7 +213,7 @@ ALTER TABLE [REGISTROS_EN_FUGA].BI_Ventas_Automovil
 	ADD CONSTRAINT FK_venta_automovil_tipo_transmision_id FOREIGN KEY (tipo_transmision_id_fk) REFERENCES [REGISTROS_EN_FUGA].BI_Tipo_transmision(tipo_transmision_id)
 
 ALTER TABLE [REGISTROS_EN_FUGA].BI_Ventas_Automovil
-	ADD CONSTRAINT FK_venta_automovil_tipo_motor_id FOREIGN KEY (tipo_motor_id_fk) REFERENCES [REGISTROS_EN_FUGA].BI_Tipo_Motor(tipo_motor_id)
+	ADD CONSTRAINT FK_venta_automovil_tipo_motor_id FOREIGN KEY (tipo_motor_id_fk) REFERENCES [REGISTROS_EN_FUGA].BI_Tipo_Motor(motor_nro)
 
 ALTER TABLE [REGISTROS_EN_FUGA].BI_Ventas_Automovil
 	ADD CONSTRAINT FK_venta_automovil_tipo_caja_id FOREIGN KEY (tipo_caja_id_fk) REFERENCES [REGISTROS_EN_FUGA].BI_Tipo_caja(tipo_caja_id)
@@ -226,8 +224,6 @@ ALTER TABLE [REGISTROS_EN_FUGA].BI_Ventas_Automovil
 ALTER TABLE [REGISTROS_EN_FUGA].BI_Ventas_Automovil
 	ADD CONSTRAINT FK_venta_automovil_modelo_id FOREIGN KEY (modelo_id_fk) REFERENCES [REGISTROS_EN_FUGA].BI_Modelo(modelo_id)
 
-ALTER TABLE [REGISTROS_EN_FUGA].BI_Ventas_Automovil
-	ADD CONSTRAINT FK_venta_automovil_fabricante_id FOREIGN KEY (fabricante_id_fk) REFERENCES [REGISTROS_EN_FUGA].BI_Fabricante(fabricante_id)
 
 --CONSTRAINTS PARA BI_Compras_Autopartes
 ALTER TABLE [REGISTROS_EN_FUGA].BI_Compras_Autopartes
@@ -259,7 +255,7 @@ ALTER TABLE [REGISTROS_EN_FUGA].BI_Compras_Automovil
 	ADD CONSTRAINT FK_compra_automovil_tipo_transmision_id FOREIGN KEY (tipo_transmision_id_fk) REFERENCES [REGISTROS_EN_FUGA].BI_Tipo_transmision(tipo_transmision_id)
 
 ALTER TABLE [REGISTROS_EN_FUGA].BI_Compras_Automovil
-	ADD CONSTRAINT FK_compra_automovil_tipo_motor_id FOREIGN KEY (tipo_motor_id_fk) REFERENCES [REGISTROS_EN_FUGA].BI_Tipo_Motor(tipo_motor_id)
+	ADD CONSTRAINT FK_compra_automovil_tipo_motor_id FOREIGN KEY (tipo_motor_id_fk) REFERENCES [REGISTROS_EN_FUGA].BI_Tipo_Motor(motor_nro)
 
 ALTER TABLE [REGISTROS_EN_FUGA].BI_Compras_Automovil
 	ADD CONSTRAINT FK_compra_automovil_tipo_caja_id FOREIGN KEY (tipo_caja_id_fk) REFERENCES [REGISTROS_EN_FUGA].BI_Tipo_caja(tipo_caja_id)
@@ -269,9 +265,6 @@ ALTER TABLE [REGISTROS_EN_FUGA].BI_Compras_Automovil
 
 ALTER TABLE [REGISTROS_EN_FUGA].BI_Compras_Automovil
 	ADD CONSTRAINT FK_compra_automovil_modelo_id FOREIGN KEY (modelo_id_fk) REFERENCES [REGISTROS_EN_FUGA].BI_Modelo(modelo_id)
-
-ALTER TABLE [REGISTROS_EN_FUGA].BI_Compras_Automovil
-	ADD CONSTRAINT FK_compra_automovil_fabricante_id FOREIGN KEY (fabricante_id_fk) REFERENCES [REGISTROS_EN_FUGA].BI_Fabricante(fabricante_id)
 
 -----------------------------------------Carga de dimensiones------------------------------
 
@@ -321,7 +314,7 @@ SET IDENTITY_INSERT [REGISTROS_EN_FUGA].BI_Tipo_caja ON INSERT INTO [REGISTROS_E
 	SET IDENTITY_INSERT [REGISTROS_EN_FUGA].BI_Tipo_caja OFF
 
 --BI_Tipo_motor
-INSERT INTO [REGISTROS_EN_FUGA].BI_Tipo_motor (tipo_motor_id,tipo_motor_codigo)
+INSERT  INTO[REGISTROS_EN_FUGA].BI_Tipo_motor 
 	SELECT motor_nro, tipo_motor from [REGISTROS_EN_FUGA].Motores
 
 --BI_Tipo_transmision
@@ -373,4 +366,26 @@ from REGISTROS_EN_FUGA.Compra_Autoparte ca inner join REGISTROS_EN_FUGA.BI_Tiemp
 	inner join REGISTROS_EN_FUGA.BI_Autoparte a on a.autoparte_id = ac.autoparte_id
 	inner join REGISTROS_EN_FUGA.Autopartes ar on ar.autoparte_codigo = a.autoparte_id
 	inner join REGISTROS_EN_FUGA.BI_Fabricante fa on fa.fabricante_id = ar.autoparte_fabricante_fk
-	
+	order by tiempo_id
+
+--VENTAS AUTOMOVIL 
+INSERT [REGISTROS_EN_FUGA].BI_Ventas_Automovil
+SELECT tiempo_id, c.cliente_id, s.sucursal_id, a.automovil_id, p.potencia_id, tt.tipo_transmision_id, tm.motor_nro,
+tc.tipo_caja_id, ta.tipo_auto_id, m.modelo_id, f.fac_precio_total_facturado, 1
+from REGISTROS_EN_FUGA.Facturas f 
+	inner join REGISTROS_EN_FUGA.BI_Tiempo t on year(f.fac_fecha) = t.anio and month(f.fac_fecha) = t.mes
+	inner join REGISTROS_EN_FUGA.BI_Cliente c on  c.cliente_id = f.fac_cliente_fk 
+	inner join REGISTROS_EN_FUGA.BI_Sucursal s on s.sucursal_id = f.fac_sucursal_fk 	
+	inner join REGISTROS_EN_FUGA.BI_Automovil a on a.automovil_id = f.fac_auto_fk 
+	inner join REGISTROS_EN_FUGA.Automoviles ar on ar.auto_id = a.automovil_id
+	inner join REGISTROS_EN_FUGA.Modelo_auto mr on mr.modelo_codigo = ar.auto_modelo_fk
+	inner join REGISTROS_EN_FUGA.BI_Modelo m on m.modelo_id = ar.auto_modelo_fk
+	inner join REGISTROS_EN_FUGA.BI_Potencia p on p.potencia_id = mr.modelo_potencia
+	inner join REGISTROS_EN_FUGA.BI_Tipo_transmision tt on tt.tipo_transmision_id = mr.modelo_tipo_transmision_fk
+	inner join REGISTROS_EN_FUGA.BI_Tipo_motor tm on tm.motor_nro = ar.auto_nro_motor
+	inner join REGISTROS_EN_FUGA.BI_Tipo_caja tc on tc.tipo_caja_id = mr.modelo_tipo_caja_fk
+	inner join REGISTROS_EN_FUGA.BI_Tipo_automovil ta on ta.tipo_auto_id = ar.auto_tipo_fk
+	where f.fac_auto_fk is NOT NULL order by tiempo_id
+
+	select * from  REGISTROS_EN_FUGA.BI_Tipo_motor tc inner join REGISTROS_EN_FUGA.Automoviles ar  
+	on tc.motor_nro = ar.auto_nro_motor
