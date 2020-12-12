@@ -50,7 +50,8 @@ IF object_id('REGISTROS_EN_FUGA.BI_Cliente') is not null
 -------------------------------Dimensiones--------------------------------
 create table [REGISTROS_EN_FUGA].BI_Tiempo(
 		tiempo_id int primary key identity,
-		mes			char(2) not null,
+		mes_numero			INTEGER not null,
+		mes_nombre			CHAR(30),
 		anio	char(4) not null
 		)
 
@@ -270,10 +271,12 @@ ALTER TABLE [REGISTROS_EN_FUGA].BI_Compras_Automovil
 -----------------------------------------Carga de dimensiones------------------------------
 
 --BI_Tiempo
-INSERT INTO [REGISTROS_EN_FUGA].[BI_Tiempo] 
-	select MONTH(fac_fecha), YEAR(fac_fecha) from [REGISTROS_EN_FUGA].[Facturas]
-	group by YEAR(fac_fecha), MONTH(fac_fecha) order by YEAR(fac_fecha), MONTH(fac_fecha)
+EXEC CREAR_ANIOS_Y_MESES_DE_INTERES
 
+INSERT INTO [REGISTROS_EN_FUGA].[BI_Tiempo] SELECT m.mes, m.Nombre, a.anio FROM Anios a CROSS JOIN Meses m
+
+DROP TABLE MESES
+DROP TABLE ANIOS
 
 --BI_CLIENTES
 /*SET IDENTITY_INSERT [REGISTROS_EN_FUGA].BI_Cliente ON INSERT INTO [REGISTROS_EN_FUGA].BI_Cliente
