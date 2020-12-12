@@ -56,14 +56,14 @@ create table [REGISTROS_EN_FUGA].BI_Tiempo(
 
 create table [REGISTROS_EN_FUGA].BI_Cliente(
 	cliente_id int primary key identity,
-	cliente_edad		nvarchar(40) not null,
+	cliente_rango_edad		nvarchar(40) not null,
 	--cliente_sexo		int not null (decidimos sacarlo ya que no hay referencia a este --dato en ningun registro, seria un valor inventado que podria alterar los resultados   --generados)
-	cliente_nombre		nvarchar(255) not null,
-	cliente_apellido	nvarchar(255) not null,
-	cliente_direccion	nvarchar(255) not null,
-	cliente_dni			decimal(18,0) not null,
-	cliente_fecha_nacimiento datetime2(3) not null,
-	cliente_email		nvarchar(255) not null
+	--cliente_nombre		nvarchar(255) not null,
+	--cliente_apellido	nvarchar(255) not null,
+	--cliente_direccion	nvarchar(255) not null,
+	--cliente_dni			decimal(18,0) not null,
+	--cliente_fecha_nacimiento datetime2(3) not null,
+	--cliente_email		nvarchar(255) not null
 )
 
 create table [REGISTROS_EN_FUGA].BI_Sucursal(
@@ -105,7 +105,7 @@ create table [REGISTROS_EN_FUGA].BI_Tipo_transmision(
 
 create table [REGISTROS_EN_FUGA].BI_Potencia(
 	potencia_id int primary key identity,
-	potencia_codigo decimal(18,0) not null,
+	--potencia_codigo decimal(18,0) not null,
 	potencia_rango nvarchar(40) not null
 )
 
@@ -276,7 +276,7 @@ INSERT INTO [REGISTROS_EN_FUGA].[BI_Tiempo]
 
 
 --BI_CLIENTES
-SET IDENTITY_INSERT [REGISTROS_EN_FUGA].BI_Cliente ON INSERT INTO [REGISTROS_EN_FUGA].BI_Cliente
+/*SET IDENTITY_INSERT [REGISTROS_EN_FUGA].BI_Cliente ON INSERT INTO [REGISTROS_EN_FUGA].BI_Cliente
 	(cliente_id, cliente_edad, cliente_nombre, cliente_apellido, cliente_direccion, cliente_dni, cliente_fecha_nacimiento, cliente_email)
 	SELECT cliente_id, CASE 
 	WHEN FLOOR(DATEDIFF(DAY, cli_fecha_nac, CURRENT_TIMESTAMP) / 365.25) BETWEEN 18 AND 30 THEN '18 - 30 años'
@@ -285,7 +285,10 @@ SET IDENTITY_INSERT [REGISTROS_EN_FUGA].BI_Cliente ON INSERT INTO [REGISTROS_EN_
 	END AS cliente_edad,
 	cli_nombre, cli_apellido, cli_direccion, 
 	cli_DNI, cli_fecha_nac, cli_mail FROM [REGISTROS_EN_FUGA].CLIENTES
-	SET IDENTITY_INSERT [REGISTROS_EN_FUGA].BI_Cliente OFF
+	SET IDENTITY_INSERT [REGISTROS_EN_FUGA].BI_Cliente OFF*/
+INSERT INTO [REGISTROS_EN_FUGA].BI_Cliente (cliente_rango_edad) values('18 - 30 años');
+INSERT INTO [REGISTROS_EN_FUGA].BI_Cliente (cliente_rango_edad) values('31 - 50 años');
+INSERT INTO [REGISTROS_EN_FUGA].BI_Cliente (cliente_rango_edad) values('> 50 años');
 
 --BI_Sucursal
 SET IDENTITY_INSERT [REGISTROS_EN_FUGA].BI_Sucursal ON INSERT INTO [REGISTROS_EN_FUGA].BI_Sucursal 
@@ -324,12 +327,9 @@ SET IDENTITY_INSERT [REGISTROS_EN_FUGA].BI_Tipo_transmision ON INSERT INTO [REGI
 	SET IDENTITY_INSERT [REGISTROS_EN_FUGA].BI_Tipo_transmision OFF
 
 --BI_Potencia
-INSERT INTO [REGISTROS_EN_FUGA].BI_Potencia 
-	SELECT modelo_potencia,  CASE 
-	WHEN modelo_potencia BETWEEN 50 AND 150 THEN '50 - 150cv'
-	WHEN modelo_potencia BETWEEN 151 AND 300 THEN '151 - 300cv'
-	WHEN modelo_potencia > 300 THEN '> 300cv' END
-	from [REGISTROS_EN_FUGA].Modelo_auto
+INSERT INTO [REGISTROS_EN_FUGA].BI_Potencia (potencia_rango) values('50 - 150cv');
+INSERT INTO [REGISTROS_EN_FUGA].BI_Potencia (potencia_rango) values('151 - 300cv');
+INSERT INTO [REGISTROS_EN_FUGA].BI_Potencia (potencia_rango) values('> 300cv');
 
 --BI_Autoparte
 SET IDENTITY_INSERT [REGISTROS_EN_FUGA].BI_Autoparte ON INSERT INTO [REGISTROS_EN_FUGA].BI_Autoparte (autoparte_id, autoparte_desc,autoparte_precio_compra, autoparte_precio_venta)
@@ -375,7 +375,7 @@ SELECT tiempo_id,
 c.cliente_id, 
 s.sucursal_id, 
 a.automovil_id, 
-p.potencia_id, 
+--p.potencia_id, 
 tt.tipo_transmision_id, 
 tm.motor_nro,
 tc.tipo_caja_id, 
@@ -390,7 +390,7 @@ from REGISTROS_EN_FUGA.Facturas f
 	inner join REGISTROS_EN_FUGA.Automoviles ar on ar.auto_id = a.automovil_id
 	inner join REGISTROS_EN_FUGA.Modelo_auto mr on mr.modelo_codigo = ar.auto_modelo_fk
 	inner join REGISTROS_EN_FUGA.BI_Modelo m on m.modelo_id = ar.auto_modelo_fk
-	inner join REGISTROS_EN_FUGA.BI_Potencia p on p.potencia_codigo = mr.modelo_potencia
+	--inner join REGISTROS_EN_FUGA.BI_Potencia p on p.potencia_codigo = mr.modelo_potencia
 	inner join REGISTROS_EN_FUGA.BI_Tipo_transmision tt on tt.tipo_transmision_id = mr.modelo_tipo_transmision_fk
 	inner join REGISTROS_EN_FUGA.BI_Tipo_motor tm on tm.motor_nro = ar.auto_nro_motor
 	inner join REGISTROS_EN_FUGA.BI_Tipo_caja tc on tc.tipo_caja_id = mr.modelo_tipo_caja_fk
