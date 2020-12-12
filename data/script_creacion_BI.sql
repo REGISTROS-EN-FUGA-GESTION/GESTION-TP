@@ -397,6 +397,31 @@ from REGISTROS_EN_FUGA.Facturas f
 	inner join REGISTROS_EN_FUGA.BI_Tipo_automovil ta on ta.tipo_auto_id = ar.auto_tipo_fk
 	where f.fac_auto_fk is NOT NULL order by tiempo_id
 
+---temporal venta automovil
+
+SELECT fac_fecha as FECHA_FACTURA, 
+c.cli_fecha_nac as FECHA_NAC_CLIENTE, 
+s.sucursal_direccion, 
+ar.auto_nro_chasis, 
+mot.motor_nro,
+ta.tipo_auto_codigo,
+mr.modelo_potencia AS POTENCIA,
+mr.modelo_nombre,
+tc.tipo_caja_codigo,
+tt.tipo_transmision_codigo,
+f.fac_precio_total_facturado
+into #TempVentaAutomovil
+from REGISTROS_EN_FUGA.Facturas f 
+	inner join REGISTROS_EN_FUGA.Clientes c on  c.cliente_id = f.fac_cliente_fk 
+	inner join REGISTROS_EN_FUGA.Sucursales s on s.sucursal_id = f.fac_sucursal_fk 	
+	inner join REGISTROS_EN_FUGA.Automoviles ar on ar.auto_id = f.fac_auto_fk
+	inner join REGISTROS_EN_FUGA.Modelo_auto mr on mr.modelo_codigo = ar.auto_modelo_fk
+	inner join REGISTROS_EN_FUGA.Tipo_transmision tt on tt.tipo_transmision_codigo = mr.modelo_tipo_transmision_fk
+	inner join REGISTROS_EN_FUGA.Motores mot on mot.motor_nro = ar.auto_nro_motor
+	inner join REGISTROS_EN_FUGA.Tipo_caja tc on tc.tipo_caja_codigo = mr.modelo_tipo_caja_fk
+	inner join REGISTROS_EN_FUGA.Tipo_auto ta on ta.tipo_auto_codigo = ar.auto_tipo_fk
+
+
 IF object_id('automoviles','v') is not null
 	DROP VIEW [dbo].[automoviles]
 
