@@ -397,6 +397,23 @@ from REGISTROS_EN_FUGA.Facturas f inner join REGISTROS_EN_FUGA.BI_Tiempo t on
 	inner join REGISTROS_EN_FUGA.BI_Fabricante fa on fa.fabricante_id = ar.autoparte_fabricante_fk 
 	where f.fac_auto_fk is NULL order by tiempo_id
 
+--temporal venta autoparte
+SELECT fac_fecha as FECHA_FACTURA, 
+c.cli_fecha_nac as FECHA_NAC_CLIENTE, 
+ s.sucursal_direccion,
+ av.autoparte_id, 
+ fa.fabricante_nombre, 
+ ar.autoparte_precio_facturado, 
+ av.cantidad
+into #TempVentaAutoparte  
+from REGISTROS_EN_FUGA.Facturas f 
+	inner join REGISTROS_EN_FUGA.Clientes c on c.cliente_id = f.fac_cliente_fk 
+	inner join REGISTROS_EN_FUGA.Sucursales s on s.sucursal_id = f.fac_sucursal_fk 	
+	inner join REGISTROS_EN_FUGA.Autoparte_por_venta av on av.factura_id = f.factura_nro
+	inner join REGISTROS_EN_FUGA.Autopartes ar on ar.autoparte_codigo = av.autoparte_id
+	inner join REGISTROS_EN_FUGA.Fabricantes fa on fa.fabricante_id = ar.autoparte_fabricante_fk 
+
+
 
 -- FACT TABLE COMPRA AUTOPARTE
 INSERT [REGISTROS_EN_FUGA].BI_Compras_Autopartes
