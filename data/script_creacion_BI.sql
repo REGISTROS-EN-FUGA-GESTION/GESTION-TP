@@ -409,6 +409,19 @@ from REGISTROS_EN_FUGA.Compra_Autoparte ca inner join REGISTROS_EN_FUGA.BI_Tiemp
 	inner join REGISTROS_EN_FUGA.Autopartes ar on ar.autoparte_codigo = a.autoparte_id
 	inner join REGISTROS_EN_FUGA.BI_Fabricante fa on fa.fabricante_id = ar.autoparte_fabricante_fk
 	order by tiempo_id
+--temportal compra autoparte
+SELECT ca.compra_fecha,
+s.sucursal_direccion,
+ar.autoparte_codigo,
+fa.fabricante_nombre,
+ar.autoparte_precio_compra, 
+ac.cantidad
+into #TempCompraAutoparte  
+from REGISTROS_EN_FUGA.Compra_Autoparte ca 
+	inner join REGISTROS_EN_FUGA.Sucursales s on s.sucursal_id = ca.compra_sucursal_fk
+	inner join REGISTROS_EN_FUGA.Autoparte_por_compra ac on ac.compra_nro = ca.compra_nro
+	inner join REGISTROS_EN_FUGA.Autopartes ar on ar.autoparte_codigo = ac.autoparte_id
+	inner join REGISTROS_EN_FUGA.Fabricantes fa on fa.fabricante_id = ar.autoparte_fabricante_fk
 
 --VENTAS AUTOMOVIL 
 INSERT [REGISTROS_EN_FUGA].BI_Ventas_Automovil
