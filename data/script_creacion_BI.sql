@@ -486,34 +486,6 @@ SELECT  fac_fecha as FECHA_FACTURA,
 
 -- FACT TABLE VENTAS AUTOMOVIL 
 INSERT [REGISTROS_EN_FUGA].BI_Ventas_Automovil
-	SELECT tiempo_id, 
-			c.cliente_id, 
-			s.sucursal_id, 
-			a.automovil_id, 
-	        --sp.potencia_id, 
-			tt.tipo_transmision_id, 
-			tm.motor_nro,
-			tc.tipo_caja_id, 
-			ta.tipo_auto_id, 
-			m.modelo_id, 
-			f.fac_precio_total_facturado, 
-			1
-			from REGISTROS_EN_FUGA.Facturas f 
-				inner join REGISTROS_EN_FUGA.BI_Tiempo t on year(f.fac_fecha) = t.anio and month(f.fac_fecha) = t.mes_numero
-				inner join REGISTROS_EN_FUGA.BI_Cliente c on  c.cliente_id = f.fac_cliente_fk 
-				inner join REGISTROS_EN_FUGA.BI_Sucursal s on s.sucursal_id = f.fac_sucursal_fk 	
-				inner join REGISTROS_EN_FUGA.BI_Automovil a on a.automovil_id = f.fac_auto_fk 
-				inner join REGISTROS_EN_FUGA.Automoviles ar on ar.auto_id = a.automovil_id
-				inner join REGISTROS_EN_FUGA.Modelo_auto mr on mr.modelo_codigo = ar.auto_modelo_fk
-				inner join REGISTROS_EN_FUGA.BI_Modelo m on m.modelo_id = ar.auto_modelo_fk
-				--inner join REGISTROS_EN_FUGA.BI_Potencia p on p.potencia_codigo = mr.modelo_potencia
-				inner join REGISTROS_EN_FUGA.BI_Tipo_transmision tt on tt.tipo_transmision_id = mr.modelo_tipo_transmision_fk
-				inner join REGISTROS_EN_FUGA.BI_Tipo_motor tm on tm.motor_nro = ar.auto_nro_motor
-				inner join REGISTROS_EN_FUGA.BI_Tipo_caja tc on tc.tipo_caja_id = mr.modelo_tipo_caja_fk
-				inner join REGISTROS_EN_FUGA.BI_Tipo_automovil ta on ta.tipo_auto_id = ar.auto_tipo_fk
-				where f.fac_auto_fk is NOT NULL order by tiempo_id
-
-INSERT [REGISTROS_EN_FUGA].BI_Ventas_Automovil
 	SELECT T.tiempo_id,
 		   -- NO SÉ DE DONDE SACAR CLIENTE CREO QUE FALTA AGREGARLO A LA TEMPORAL????
 		   S.sucursal_id,
