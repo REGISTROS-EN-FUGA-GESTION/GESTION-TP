@@ -332,16 +332,6 @@ DROP TABLE MESES
 DROP TABLE ANIOS
 
 --BI_CLIENTES
-/*SET IDENTITY_INSERT [REGISTROS_EN_FUGA].BI_Cliente ON INSERT INTO [REGISTROS_EN_FUGA].BI_Cliente
-	(cliente_id, cliente_edad, cliente_nombre, cliente_apellido, cliente_direccion, cliente_dni, cliente_fecha_nacimiento, cliente_email)
-	SELECT cliente_id, CASE 
-	WHEN FLOOR(DATEDIFF(DAY, cli_fecha_nac, CURRENT_TIMESTAMP) / 365.25) BETWEEN 18 AND 30 THEN '18 - 30 años'
-	WHEN FLOOR(DATEDIFF(DAY, cli_fecha_nac, CURRENT_TIMESTAMP) / 365.25) BETWEEN 31 AND 50 THEN '31 - 50 años'
-	WHEN FLOOR(DATEDIFF(DAY, cli_fecha_nac, CURRENT_TIMESTAMP) / 365.25) > 50 THEN '> 50 años'
-	END AS cliente_edad,
-	cli_nombre, cli_apellido, cli_direccion, 
-	cli_DNI, cli_fecha_nac, cli_mail FROM [REGISTROS_EN_FUGA].CLIENTES
-	SET IDENTITY_INSERT [REGISTROS_EN_FUGA].BI_Cliente OFF*/
 INSERT INTO [REGISTROS_EN_FUGA].BI_Cliente (cliente_rango_edad) values('18 - 30 años');
 INSERT INTO [REGISTROS_EN_FUGA].BI_Cliente (cliente_rango_edad) values('31 - 50 años');
 INSERT INTO [REGISTROS_EN_FUGA].BI_Cliente (cliente_rango_edad) values('> 50 años');
@@ -400,17 +390,23 @@ SET IDENTITY_INSERT [REGISTROS_EN_FUGA].BI_Automovil ON INSERT INTO [REGISTROS_E
 	SET IDENTITY_INSERT [REGISTROS_EN_FUGA].BI_Automovil OFF
 
 -------------------------------------FACT TABLES Y TEMPORALES--------------------------------------------
+drop table #TempVentaAutoparte
 
 --temporal venta autoparte
+USE GD2C2020
 SELECT fac_fecha as FECHA_FACTURA, 
-	   c.cli_fecha_nac as FECHA_NAC_CLIENTE, 
-	   s.sucursal_direccion,
-	   av.autoparte_id, 
-	   fa.fabricante_nombre, 
-	   ar.autoparte_precio_facturado, 
-	   av.cantidad
+		CASE
+			WHEN DateDiff (Year, c.cli_fecha_nac, f.fac_fecha) <= 30 THEN 1
+			WHEN DateDiff (Year, c.cli_fecha_nac, f.fac_fecha) <= 50 THEN 2
+			ELSE 3
+		END as EDAD_CLIENTE,
+	   s.sucursal_direccion SUCURSAL_DIRECCION,
+	   av.autoparte_id AUTOPARTE_ID, 
+	   fa.fabricante_nombre NOMBRE_FAB, 
+	   ar.autoparte_precio_facturado PRECIO, 
+	   av.cantidad CANTIDAD
 	   into #TempVentaAutoparte  
-	   from REGISTROS_EN_FUGA.Facturas f 
+	   from [REGISTROS_EN_FUGA].[Facturas] f 
 			inner join REGISTROS_EN_FUGA.Clientes c on c.cliente_id = f.fac_cliente_fk 
 			inner join REGISTROS_EN_FUGA.Sucursales s on s.sucursal_id = f.fac_sucursal_fk 	
 			inner join REGISTROS_EN_FUGA.Autoparte_por_venta av on av.factura_id = f.factura_nro
@@ -419,16 +415,19 @@ SELECT fac_fecha as FECHA_FACTURA,
 
 -- FACT TABLE VENTA AUTOPARTE
 INSERT [REGISTROS_EN_FUGA].BI_Ventas_Autopartes
-	SELECT tiempo_id, c.cliente_id, s.sucursal_id, av.autoparte_id, fa.fabricante_id, a.autoparte_precio_venta, av.cantidad
-	from REGISTROS_EN_FUGA.Facturas f inner join REGISTROS_EN_FUGA.BI_Tiempo t on
-		year(f.fac_fecha) = t.anio and month(f.fac_fecha) = t.mes_numero
-		inner join REGISTROS_EN_FUGA.BI_Cliente c on c.cliente_id = f.fac_cliente_fk 
-		inner join REGISTROS_EN_FUGA.BI_Sucursal s on s.sucursal_id = f.fac_sucursal_fk
-		inner join REGISTROS_EN_FUGA.Autoparte_por_venta av on av.factura_id = f.factura_nro
-		inner join REGISTROS_EN_FUGA.BI_Autoparte a on a.autoparte_id = av.autoparte_id
-		inner join REGISTROS_EN_FUGA.Autopartes ar on ar.autoparte_codigo = a.autoparte_id
-		inner join REGISTROS_EN_FUGA.BI_Fabricante fa on fa.fabricante_id = ar.autoparte_fabricante_fk 
-		where f.fac_auto_fk is NULL order by tiempo_id
+	SELECT t.tiempo_id,
+	 c.cliente_id, 
+	 s.sucursal_id, 
+	 a.autoparte_id, 
+	 fa.fabricante_id, 
+	 Temp.PRECIO, Temp.CANTIDAD
+	from #TempVentaAutoparte Temp
+		inner join REGISTROS_EN_FUGA.BI_Tiempo t on
+		year(Temp.FECHA_FACTURA) = t.anio and month(Temp.FECHA_FACTURA) = t.mes_numero
+		inner join REGISTROS_EN_FUGA.BI_Cliente c on c.cliente_id = Temp.EDAD_CLIENTE
+		inner join REGISTROS_EN_FUGA.BI_Sucursal s on s.sucursal_direccion = Temp.SUCURSAL_DIRECCION
+		inner join REGISTROS_EN_FUGA.BI_Autoparte a on a.autoparte_id = Temp.AUTOPARTE_ID
+		inner join REGISTROS_EN_FUGA.BI_Fabricante fa on fa.fabricante_nombre = Temp.NOMBRE_FAB
 
 
 --temporal compra autoparte
@@ -463,7 +462,11 @@ DROP TABLE #TempCompraAutoparte
 
 ---temporal venta automovil
 SELECT  fac_fecha as FECHA_FACTURA, 
-		c.cli_fecha_nac as FECHA_NAC_CLIENTE, 
+		CASE
+			WHEN DateDiff (Year, c.cli_fecha_nac, f.fac_fecha) <= 30 THEN 1
+			WHEN DateDiff (Year, c.cli_fecha_nac, f.fac_fecha) <= 50 THEN 2
+			ELSE 3
+		END as EDAD_CLIENTE,
 		s.sucursal_direccion, 
 		ar.auto_nro_chasis, 
 		mot.motor_nro,
@@ -487,7 +490,7 @@ SELECT  fac_fecha as FECHA_FACTURA,
 -- FACT TABLE VENTAS AUTOMOVIL 
 INSERT [REGISTROS_EN_FUGA].BI_Ventas_Automovil
 	SELECT T.tiempo_id,
-		   -- NO SÉ DE DONDE SACAR CLIENTE CREO QUE FALTA AGREGARLO A LA TEMPORAL????
+		   C.cliente_id,
 		   S.sucursal_id,
 		   A.automovil_id,
 		   CASE
@@ -504,6 +507,7 @@ INSERT [REGISTROS_EN_FUGA].BI_Ventas_Automovil
 		   1
 	    FROM #TempVentaAutomovil TA
 		INNER JOIN REGISTROS_EN_FUGA.BI_Tiempo T ON T.anio = YEAR(TA.FECHA_FACTURA) AND T.mes_numero = MONTH(TA.FECHA_FACTURA)
+		INNER JOIN REGISTROS_EN_FUGA.BI_Cliente C ON C.cliente_id = TA.EDAD_CLIENTE
 		INNER JOIN REGISTROS_EN_FUGA.BI_Sucursal S ON S.sucursal_direccion = TA.sucursal_direccion
 		INNER JOIN REGISTROS_EN_FUGA.BI_Automovil A ON A.automovil_nro_chasis = TA.auto_nro_chasis
 		INNER JOIN REGISTROS_EN_FUGA.BI_Modelo M ON M.modelo_nombre = TA.modelo_nombre
@@ -511,7 +515,7 @@ INSERT [REGISTROS_EN_FUGA].BI_Ventas_Automovil
 DROP TABLE #TempVentaAutomovil
 
 --temporal compra automovil
-select  ca.compra_fecha,
+select  ca.compra_fecha FECHA_COMPRA,
 		s.sucursal_direccion,
 		a.auto_nro_chasis,
 		mot.motor_nro,
@@ -530,7 +534,32 @@ select  ca.compra_fecha,
 				inner join REGISTROS_EN_FUGA.Motores mot on mot.motor_nro = a.auto_nro_motor
 				inner join REGISTROS_EN_FUGA.Tipo_caja tc on tc.tipo_caja_codigo = mr.modelo_tipo_caja_fk
 				inner join REGISTROS_EN_FUGA.Tipo_auto ta on ta.tipo_auto_codigo = a.auto_tipo_fk
+
+INSERT [REGISTROS_EN_FUGA].BI_Compras_Automovil
+	SELECT T.tiempo_id,
+		   S.sucursal_id,
+		   A.automovil_id,
+		   CASE
+				WHEN CA.POTENCIA <= 150 THEN 1
+				WHEN CA.POTENCIA <= 300 THEN 2
+				ELSE 3
+		   END as Potencia_Cod,
+		   CA.tipo_transmision_codigo,
+		   CA.motor_nro,
+		   CA.tipo_caja_codigo,
+		   CA.tipo_auto_codigo,
+		   M.modelo_id,
+		   CA.auto_precio,
+		   1 as Cantidad
+	    FROM #TempCompraAutomovil CA
+		INNER JOIN REGISTROS_EN_FUGA.BI_Tiempo T ON T.anio = YEAR(CA.FECHA_COMPRA) AND T.mes_numero = MONTH(CA.FECHA_COMPRA)
+		INNER JOIN REGISTROS_EN_FUGA.BI_Sucursal S ON S.sucursal_direccion = CA.sucursal_direccion
+		INNER JOIN REGISTROS_EN_FUGA.BI_Automovil A ON A.automovil_nro_chasis = CA.auto_nro_chasis
+		INNER JOIN REGISTROS_EN_FUGA.BI_Modelo M ON M.modelo_nombre = CA.modelo_nombre
+
 GO
+
+
 ---------------------------------------------VISTAS-------------------------------------------------------------
 
 CREATE VIEW CANTIDAD_AUTOS_VENDIDOS_Y_COMPRADOS_X_SUCURSAL_Y_MES AS	 
