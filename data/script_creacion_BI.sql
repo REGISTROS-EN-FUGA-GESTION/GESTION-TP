@@ -390,7 +390,7 @@ SET IDENTITY_INSERT [REGISTROS_EN_FUGA].BI_Automovil ON INSERT INTO [REGISTROS_E
 INSERT [REGISTROS_EN_FUGA].BI_Ventas_Autopartes
 	SELECT tiempo_id, c.cliente_id, s.sucursal_id, av.autoparte_id, fa.fabricante_id, a.autoparte_precio_venta, av.cantidad
 	from REGISTROS_EN_FUGA.Facturas f inner join REGISTROS_EN_FUGA.BI_Tiempo t on
-		year(f.fac_fecha) = t.anio and month(f.fac_fecha) = t.mes
+		year(f.fac_fecha) = t.anio and month(f.fac_fecha) = t.mes_numero
 		inner join REGISTROS_EN_FUGA.BI_Cliente c on c.cliente_id = f.fac_cliente_fk 
 		inner join REGISTROS_EN_FUGA.BI_Sucursal s on s.sucursal_id = f.fac_sucursal_fk
 		inner join REGISTROS_EN_FUGA.Autoparte_por_venta av on av.factura_id = f.factura_nro
@@ -419,7 +419,7 @@ SELECT fac_fecha as FECHA_FACTURA,
 INSERT [REGISTROS_EN_FUGA].BI_Compras_Autopartes
 	SELECT tiempo_id,  s.sucursal_id, a.autoparte_id, fa.fabricante_id, a.autoparte_precio_compra, ac.cantidad  
 	from REGISTROS_EN_FUGA.Compra_Autoparte ca inner join REGISTROS_EN_FUGA.BI_Tiempo t on  
-		year(ca.compra_fecha) = t.anio and month(ca.compra_fecha) = t.mes
+		year(ca.compra_fecha) = t.anio and month(ca.compra_fecha) = t.mes_numero
 		inner join [REGISTROS_EN_FUGA].BI_Sucursal s on s.sucursal_id = ca.compra_sucursal_fk
 		inner join REGISTROS_EN_FUGA.Autoparte_por_compra ac on ac.compra_nro = ca.compra_nro
 		inner join REGISTROS_EN_FUGA.BI_Autoparte a on a.autoparte_id = ac.autoparte_id
@@ -441,21 +441,22 @@ SELECT ca.compra_fecha,
 			inner join REGISTROS_EN_FUGA.Autopartes ar on ar.autoparte_codigo = ac.autoparte_id
 			inner join REGISTROS_EN_FUGA.Fabricantes fa on fa.fabricante_id = ar.autoparte_fabricante_fk
 
--- FACT TABLEVENTAS AUTOMOVIL 
+-- FACT TABLE VENTAS AUTOMOVIL 
 INSERT [REGISTROS_EN_FUGA].BI_Ventas_Automovil
 	SELECT tiempo_id, 
 			c.cliente_id, 
 			s.sucursal_id, 
 			a.automovil_id, 
-	        --p.potencia_id, 
+	        --sp.potencia_id, 
 			tt.tipo_transmision_id, 
 			tm.motor_nro,
 			tc.tipo_caja_id, 
 			ta.tipo_auto_id, 
 			m.modelo_id, 
-			f.fac_precio_total_facturado, 1
+			f.fac_precio_total_facturado, 
+			1
 			from REGISTROS_EN_FUGA.Facturas f 
-				inner join REGISTROS_EN_FUGA.BI_Tiempo t on year(f.fac_fecha) = t.anio and month(f.fac_fecha) = t.mes
+				inner join REGISTROS_EN_FUGA.BI_Tiempo t on year(f.fac_fecha) = t.anio and month(f.fac_fecha) = t.mes_numero
 				inner join REGISTROS_EN_FUGA.BI_Cliente c on  c.cliente_id = f.fac_cliente_fk 
 				inner join REGISTROS_EN_FUGA.BI_Sucursal s on s.sucursal_id = f.fac_sucursal_fk 	
 				inner join REGISTROS_EN_FUGA.BI_Automovil a on a.automovil_id = f.fac_auto_fk 
@@ -522,13 +523,36 @@ IF object_id('autopartes','v') is not null
 	DROP VIEW [dbo].[autopartes]
 
 GO
-CREATE VIEW automoviles AS	 
+
+CREATE VIEW CANTIDAD_AUTOS_VENDIDOS_Y_COMPRADOS_X_SUCURSAL_Y_MES AS	 
+	SELECT sum(V.unidades) AS Cant_Vendidos, sum(C.unidades) AS Cant_Comprados 
+		FROM REGISTROS_EN_FUGA.BI_Ventas_Automovil V
+		JOIN REGISTROS_EN_FUGA.BI_Compras_Automovil C on C.tiempo_id_fk + C.sucursal_id_fk = V.tiempo_id_fk + V.sucursal_id_fk
+		group by V.tiempo_id_fk, C.tiempo_id_fk, V.sucursal_id_fk, C.sucursal_id_fk
+GO
+
+CREATE VIEW PRECIO_PROMEDIO_AUTOMOVILES_VENDIDOS_Y_COMPRADOS AS	 
+	SELECT AVG(V.precio_venta) Precio_venta_promedio, AVG(C.precio_compra) Precio_compra_promedio
+		FROM REGISTROS_EN_FUGA.BI_Ventas_Automovil V
+		JOIN REGISTROS_EN_FUGA.BI_Compras_Automovil C on C.tiempo_id_fk + C.sucursal_id_fk = V.tiempo_id_fk + V.sucursal_id_fk
+		group by C.precio_compra, V.precio_venta
+GO
+
+CREATE VIEW GANANCIAS_X_SUCURSAL_Y_MES AS	 
+	SELECT ((SUM(V.unidades)*(V.precio_venta)) - (SUM(C.unidades)*(C.precio_compra))) AS 'GANANCIA'
+		FROM REGISTROS_EN_FUGA.BI_Ventas_Automovil V
+		JOIN REGISTROS_EN_FUGA.BI_Compras_Automovil C on C.tiempo_id_fk + C.sucursal_id_fk = V.tiempo_id_fk + V.sucursal_id_fk
+		group by  V.tiempo_id_fk, C.tiempo_id_fk, V.sucursal_id_fk, C.sucursal_id_fk, C.precio_compra, V.precio_venta
+GO
+
+--ACÁ NO ESTÁ LO DE PROMEDIO DE TIEMPO EN STOCK DE CADA MODELO DE AUTO, NO SÉ SI AL FINAL NO IBA O NOS LO COMIMOS
+/*CREATE VIEW automoviles AS	 
 		SELECT sum(V.unidades) AS Cant_Vendidos, sum(C.unidades) AS Cant_Comprados, AVG(V.precio_venta) Precio_venta_promedio, AVG(C.precio_compra) Precio_compra_promedio,
 		((SUM(V.unidades)*(V.precio_venta)) - (SUM(C.unidades)*(C.precio_compra))) GANANCIA 
 		FROM REGISTROS_EN_FUGA.BI_Ventas_Automovil V
 		JOIN REGISTROS_EN_FUGA.BI_Compras_Automovil C on C.tiempo_id_fk+C.sucursal_id_fk=V.tiempo_id_fk+V.sucursal_id_fk
 		group by V.tiempo_id_fk, C.tiempo_id_fk, V.sucursal_id_fk, C.sucursal_id_fk, C.precio_compra, V.precio_venta	
-GO
+GO*/
 
 CREATE VIEW autopartes AS	
 		SELECT 
