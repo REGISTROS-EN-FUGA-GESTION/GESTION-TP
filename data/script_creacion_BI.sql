@@ -50,6 +50,21 @@ IF object_id('REGISTROS_EN_FUGA.BI_Cliente') is not null
 IF object_id('CREAR_ANIOS_Y_MESES_DE_INTERES','p') is not null
 	DROP PROCEDURE [dbo].[CREAR_ANIOS_Y_MESES_DE_INTERES]
 
+IF object_id('CANTIDAD_AUTOS_VENDIDOS_Y_COMPRADOS_X_SUCURSAL_Y_MES','v') is not null
+	DROP VIEW [dbo].[CANTIDAD_AUTOS_VENDIDOS_Y_COMPRADOS_X_SUCURSAL_Y_MES]
+
+IF object_id('PRECIO_PROMEDIO_AUTOMOVILES_VENDIDOS_Y_COMPRADOS','v') is not null
+	DROP VIEW [dbo].[PRECIO_PROMEDIO_AUTOMOVILES_VENDIDOS_Y_COMPRADOS]
+
+IF object_id('GANANCIAS_X_SUCURSAL_Y_MES_AUTOMOVILES','v') is not null
+	DROP VIEW [dbo].[GANANCIAS_X_SUCURSAL_Y_MES_AUTOMOVILES]
+
+IF object_id('PRECIO_PROMEDIO_AUTOPARTE_VENDIDA_Y_COMPRADA','v') is not null
+	DROP VIEW [dbo].[PRECIO_PROMEDIO_AUTOPARTE_VENDIDA_Y_COMPRADA]
+
+IF object_id('GANANCIAS_X_SUCURSAL_Y_MES_AUTOPARTES','v') is not null
+	DROP VIEW [dbo].[GANANCIAS_X_SUCURSAL_Y_MES_AUTOPARTES]
+
 -------------------------------Dimensiones--------------------------------
 create table [REGISTROS_EN_FUGA].BI_Tiempo(
 		tiempo_id int primary key identity,
@@ -514,24 +529,8 @@ select  ca.compra_fecha,
 				inner join REGISTROS_EN_FUGA.Motores mot on mot.motor_nro = a.auto_nro_motor
 				inner join REGISTROS_EN_FUGA.Tipo_caja tc on tc.tipo_caja_codigo = mr.modelo_tipo_caja_fk
 				inner join REGISTROS_EN_FUGA.Tipo_auto ta on ta.tipo_auto_codigo = a.auto_tipo_fk
-
----------------------------------------------VISTAS-------------------------------------------------------------
-IF object_id('CANTIDAD_AUTOS_VENDIDOS_Y_COMPRADOS_X_SUCURSAL_Y_MES','v') is not null
-	DROP VIEW [dbo].[CANTIDAD_AUTOS_VENDIDOS_Y_COMPRADOS_X_SUCURSAL_Y_MES]
-
-IF object_id('PRECIO_PROMEDIO_AUTOMOVILES_VENDIDOS_Y_COMPRADOS','v') is not null
-	DROP VIEW [dbo].[PRECIO_PROMEDIO_AUTOMOVILES_VENDIDOS_Y_COMPRADOS]
-
-IF object_id('GANANCIAS_X_SUCURSAL_Y_MES_AUTOMOVILES','v') is not null
-	DROP VIEW [dbo].[GANANCIAS_X_SUCURSAL_Y_MES_AUTOMOVILES]
-
-IF object_id('PRECIO_PROMEDIO_AUTOPARTE_VENDIDA_Y_COMPRADA','v') is not null
-	DROP VIEW [dbo].[PRECIO_PROMEDIO_AUTOPARTE_VENDIDA_Y_COMPRADA]
-
-IF object_id('GANANCIAS_X_SUCURSAL_Y_MES_AUTOPARTES','v') is not null
-	DROP VIEW [dbo].[GANANCIAS_X_SUCURSAL_Y_MES_AUTOPARTES]
-
 GO
+---------------------------------------------VISTAS-------------------------------------------------------------
 
 CREATE VIEW CANTIDAD_AUTOS_VENDIDOS_Y_COMPRADOS_X_SUCURSAL_Y_MES AS	 
 	SELECT sum(V.unidades) AS Cant_Vendidos, sum(C.unidades) AS Cant_Comprados 
