@@ -47,6 +47,9 @@ IF object_id('REGISTROS_EN_FUGA.BI_Autoparte') is not null
 IF object_id('REGISTROS_EN_FUGA.BI_Cliente') is not null
 	drop table [REGISTROS_EN_FUGA].BI_Cliente
 
+IF object_id('CREAR_ANIOS_Y_MESES_DE_INTERES','p') is not null
+	DROP PROCEDURE [dbo].[CREAR_ANIOS_Y_MESES_DE_INTERES]
+
 -------------------------------Dimensiones--------------------------------
 create table [REGISTROS_EN_FUGA].BI_Tiempo(
 		tiempo_id int primary key identity,
@@ -267,6 +270,41 @@ ALTER TABLE [REGISTROS_EN_FUGA].BI_Compras_Automovil
 
 ALTER TABLE [REGISTROS_EN_FUGA].BI_Compras_Automovil
 	ADD CONSTRAINT FK_compra_automovil_modelo_id FOREIGN KEY (modelo_id_fk) REFERENCES [REGISTROS_EN_FUGA].BI_Modelo(modelo_id)
+GO
+-----------------------------------------Creación de Stored Procedures--------------------
+CREATE PROCEDURE [dbo].[CREAR_ANIOS_Y_MESES_DE_INTERES]
+AS
+	BEGIN
+		CREATE TABLE Anios
+		(
+			Anio INTEGER
+		);
+
+		create table Meses
+		(
+			Mes INTEGER,
+			Nombre NVARCHAR (50)
+		);
+
+		insert into Anios values (2018)
+		insert into Anios values (2019)
+		insert into Anios values (2020)
+		insert into Anios values (2021)
+		
+		insert into Meses values (1, 'ENERO')
+		insert into Meses values (2, 'FEBRERO')
+		insert into Meses values (3, 'MARZO')
+		insert into Meses values (4, 'ABRIL')
+		insert into Meses values (5, 'MAYO')
+		insert into Meses values (6, 'JUNIO')
+		insert into Meses values (7, 'JULIO')
+		insert into Meses values (8, 'AGOSTO')
+		insert into Meses values (9, 'SEPTIEMBRE')
+		insert into Meses values (10, 'OCTUBRE')
+		insert into Meses values (11, 'NOVIEMBRE')
+		insert into Meses values (12, 'DICIEMBRE')
+	END
+GO
 
 -----------------------------------------Carga de dimensiones------------------------------
 
