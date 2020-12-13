@@ -516,11 +516,20 @@ select  ca.compra_fecha,
 				inner join REGISTROS_EN_FUGA.Tipo_auto ta on ta.tipo_auto_codigo = a.auto_tipo_fk
 
 ---------------------------------------------VISTAS-------------------------------------------------------------
-IF object_id('automoviles','v') is not null
-	DROP VIEW [dbo].[automoviles]
+IF object_id('CANTIDAD_AUTOS_VENDIDOS_Y_COMPRADOS_X_SUCURSAL_Y_MES','v') is not null
+	DROP VIEW [dbo].[CANTIDAD_AUTOS_VENDIDOS_Y_COMPRADOS_X_SUCURSAL_Y_MES]
 
-IF object_id('autopartes','v') is not null
-	DROP VIEW [dbo].[autopartes]
+IF object_id('PRECIO_PROMEDIO_AUTOMOVILES_VENDIDOS_Y_COMPRADOS','v') is not null
+	DROP VIEW [dbo].[PRECIO_PROMEDIO_AUTOMOVILES_VENDIDOS_Y_COMPRADOS]
+
+IF object_id('GANANCIAS_X_SUCURSAL_Y_MES_AUTOMOVILES','v') is not null
+	DROP VIEW [dbo].[GANANCIAS_X_SUCURSAL_Y_MES_AUTOMOVILES]
+
+IF object_id('PRECIO_PROMEDIO_AUTOPARTE_VENDIDA_Y_COMPRADA','v') is not null
+	DROP VIEW [dbo].[PRECIO_PROMEDIO_AUTOPARTE_VENDIDA_Y_COMPRADA]
+
+IF object_id('GANANCIAS_X_SUCURSAL_Y_MES_AUTOPARTES','v') is not null
+	DROP VIEW [dbo].[GANANCIAS_X_SUCURSAL_Y_MES_AUTOPARTES]
 
 GO
 
@@ -538,7 +547,7 @@ CREATE VIEW PRECIO_PROMEDIO_AUTOMOVILES_VENDIDOS_Y_COMPRADOS AS
 		group by C.precio_compra, V.precio_venta
 GO
 
-CREATE VIEW GANANCIAS_X_SUCURSAL_Y_MES AS	 
+CREATE VIEW GANANCIAS_X_SUCURSAL_Y_MES_AUTOMOVILES AS	 
 	SELECT ((SUM(V.unidades)*(V.precio_venta)) - (SUM(C.unidades)*(C.precio_compra))) AS 'GANANCIA'
 		FROM REGISTROS_EN_FUGA.BI_Ventas_Automovil V
 		JOIN REGISTROS_EN_FUGA.BI_Compras_Automovil C on C.tiempo_id_fk + C.sucursal_id_fk = V.tiempo_id_fk + V.sucursal_id_fk
@@ -554,7 +563,24 @@ GO
 		group by V.tiempo_id_fk, C.tiempo_id_fk, V.sucursal_id_fk, C.sucursal_id_fk, C.precio_compra, V.precio_venta	
 GO*/
 
-CREATE VIEW autopartes AS	
+
+CREATE VIEW PRECIO_PROMEDIO_AUTOPARTE_VENDIDA_Y_COMPRADA AS	 
+		SELECT AVG(V.precio_venta) AS Precio_Prom_Vendido, AVG(C.precio_compra) AS Precio_Prom_Comprado
+			FROM REGISTROS_EN_FUGA.BI_Ventas_Autopartes V
+			JOIN REGISTROS_EN_FUGA.BI_Compras_Autopartes C on C.autoparte_id_fk = V.autoparte_id_fk
+			group by V.autoparte_id_fk, C.autoparte_id_fk
+GO
+
+CREATE VIEW GANANCIAS_X_SUCURSAL_Y_MES_AUTOPARTES AS	 
+		SELECT (SELECT ((SUM(V2.unidades)*(V2.precio_venta)) - (SUM(C2.unidades)*C2.precio_compra)) FROM REGISTROS_EN_FUGA.BI_Ventas_Autopartes V2
+			JOIN REGISTROS_EN_FUGA.BI_Compras_Autopartes C2 on C2.autoparte_id_fk = V2.autoparte_id_fk
+			WHERE c2.autoparte_id_fk = v.autoparte_id_fk GROUP BY C2.precio_compra, V2.precio_venta) as 'GANANCIAS' 
+		FROM REGISTROS_EN_FUGA.BI_Ventas_Autopartes V
+		JOIN REGISTROS_EN_FUGA.BI_Compras_Autopartes C on C.autoparte_id_fk=V.autoparte_id_fk
+GO
+
+--ACÁ NO ESTÁ NI MAXIMA CANTIDAD DE STOCK POR SUCURSAL DE FORMA ANUAL NI PROMEDIO DE TIEMPO EN STOCK DE CADA AUTOPARTE.
+/*CREATE VIEW autopartes AS	
 		SELECT 
 			AVG(V.precio_venta) AS Precio_Prom_Vendido,
 			AVG(C.precio_compra) AS Precio_Prom_Comprado,
@@ -564,4 +590,4 @@ CREATE VIEW autopartes AS
 		FROM REGISTROS_EN_FUGA.BI_Ventas_Autopartes V
 		JOIN REGISTROS_EN_FUGA.BI_Compras_Autopartes C on C.autoparte_id_fk=V.autoparte_id_fk
 		group by V.autoparte_id_fk, C.autoparte_id_fk, C.sucursal_id_fk, C.tiempo_id_fk, V.sucursal_id_fk, V.tiempo_id_fk	
-GO
+GO*/
